@@ -53,7 +53,7 @@ export const useAppStore = create<AppState>()(
       ],
       schedules: [],
       currentSchedule: null,
-      mode: 'edit',
+      mode: 'view',
 
       setMode: (mode) => set({ mode }),
 
