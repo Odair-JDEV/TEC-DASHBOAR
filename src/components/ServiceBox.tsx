@@ -35,9 +35,10 @@ export const ServiceBoxCard = ({ box, scheduleId }: ServiceBoxProps) => {
   const [osNumber, setOsNumber] = useState('');
   const [serviceType, setServiceType] = useState<ServiceType>('LOSS');
   const [status, setStatus] = useState(box.status || '');
+  const [departureTime, setDepartureTime] = useState(box.departureTime || '');
   const [showStatusInput, setShowStatusInput] = useState(!!box.status);
 
-  const { addService, removeService, updateBoxStatus, removeBox } = useAppStore();
+  const { addService, removeService, updateBoxStatus, updateBoxDepartureTime, removeBox } = useAppStore();
 
   const handleAddService = () => {
     if (osNumber.trim()) {
@@ -49,6 +50,10 @@ export const ServiceBoxCard = ({ box, scheduleId }: ServiceBoxProps) => {
   const handleStatusBlur = () => {
     updateBoxStatus(scheduleId, box.id, status.toUpperCase());
     if (!status) setShowStatusInput(false);
+  };
+
+  const handleDepartureTimeBlur = () => {
+    updateBoxDepartureTime(scheduleId, box.id, departureTime);
   };
 
   return (
@@ -68,6 +73,16 @@ export const ServiceBoxCard = ({ box, scheduleId }: ServiceBoxProps) => {
           </div>
         </div>
         <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1 mr-2">
+            <span className="text-[10px] text-muted-foreground uppercase font-semibold whitespace-nowrap">Saída:</span>
+            <Input
+              type="time"
+              value={departureTime}
+              onChange={(e) => setDepartureTime(e.target.value)}
+              onBlur={handleDepartureTimeBlur}
+              className="w-[85px] h-7 text-[11px] bg-secondary/50 border-border/50 px-2"
+            />
+          </div>
           {!showStatusInput ? (
             <Button
               variant="ghost"

@@ -14,6 +14,7 @@ export interface ServiceBox {
   number: number;
   team: Team | null;
   status?: string; // ex: "TOKYO"
+  departureTime?: string; // HH:mm format
   services: Service[];
 }
 

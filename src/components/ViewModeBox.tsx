@@ -71,9 +71,16 @@ export const ViewModeBox = ({ box, scheduleId }: ViewModeBoxProps) => {
           <h3 className="font-bold text-foreground">
             {teamName ? `${teamName}: ` : ''}(CAIXA {String(box.number).padStart(2, '0')})
           </h3>
-          {box.status && (
-            <span className="text-xs text-accent font-semibold">{box.status}</span>
-          )}
+          <div className="flex items-center gap-2">
+            {box.departureTime && (
+              <span className="text-[10px] text-accent font-bold bg-accent/10 px-1.5 py-0.5 rounded border border-accent/20">
+                SAÍDA: {box.departureTime}
+              </span>
+            )}
+            {box.status && (
+              <span className="text-xs text-accent font-semibold">{box.status}</span>
+            )}
+          </div>
         </div>
       </div>
 

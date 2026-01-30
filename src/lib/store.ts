@@ -27,6 +27,7 @@ interface AppState {
   removeBox: (scheduleId: string, boxId: string) => void;
   updateBoxTeam: (scheduleId: string, boxId: string, team: Team | null) => void;
   updateBoxStatus: (scheduleId: string, boxId: string, status: string) => void;
+  updateBoxDepartureTime: (scheduleId: string, boxId: string, departureTime: string) => void;
   
   // Services
   addService: (scheduleId: string, boxId: string, service: Omit<Service, 'id'>) => void;
@@ -146,6 +147,21 @@ export const useAppStore = create<AppState>()(
               return {
                 ...s,
                 boxes: s.boxes.map((b) => (b.id === boxId ? { ...b, status } : b)),
+              };
+            }
+            return s;
+          });
+          const currentSchedule = schedules.find((s) => s.id === scheduleId) || state.currentSchedule;
+          return { schedules, currentSchedule };
+        }),
+
+      updateBoxDepartureTime: (scheduleId, boxId, departureTime) =>
+        set((state) => {
+          const schedules = state.schedules.map((s) => {
+            if (s.id === scheduleId) {
+              return {
+                ...s,
+                boxes: s.boxes.map((b) => (b.id === boxId ? { ...b, departureTime } : b)),
               };
             }
             return s;
