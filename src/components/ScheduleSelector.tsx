@@ -25,32 +25,35 @@ export const ScheduleSelector = () => {
         Agendas
       </h2>
 
-      <div className="flex gap-2 mb-4">
-        <Input
-          type="date"
-          value={date}
-          onChange={(e) => setDate(e.target.value)}
-          className="bg-secondary/50 border-border/50 text-foreground"
-        />
-        <Select value={shift} onValueChange={(v) => setShift(v as Shift)}>
-          <SelectTrigger className="w-32 bg-secondary/50 border-border/50">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="MANHÃ">
-              <span className="flex items-center gap-2">
-                <Sun className="w-4 h-4 text-accent" /> Manhã
-              </span>
-            </SelectItem>
-            <SelectItem value="TARDE">
-              <span className="flex items-center gap-2">
-                <Moon className="w-4 h-4 text-primary" /> Tarde
-              </span>
-            </SelectItem>
-          </SelectContent>
-        </Select>
-        <Button onClick={handleCreate} size="icon" className="shrink-0">
-          <CalendarPlus className="w-4 h-4" />
+      <div className="space-y-2 mb-4">
+        <div className="flex gap-2">
+          <Input
+            type="date"
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
+            className="flex-1 bg-secondary/50 border-border/50 text-foreground"
+          />
+          <Select value={shift} onValueChange={(v) => setShift(v as Shift)}>
+            <SelectTrigger className="w-28 bg-secondary/50 border-border/50">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="MANHÃ">
+                <span className="flex items-center gap-2">
+                  <Sun className="w-4 h-4 text-accent" /> Manhã
+                </span>
+              </SelectItem>
+              <SelectItem value="TARDE">
+                <span className="flex items-center gap-2">
+                  <Moon className="w-4 h-4 text-primary" /> Tarde
+                </span>
+              </SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <Button onClick={handleCreate} className="w-full">
+          <CalendarPlus className="w-4 h-4 mr-2" />
+          Criar Agenda
         </Button>
       </div>
 
