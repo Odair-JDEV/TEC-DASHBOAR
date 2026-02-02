@@ -38,9 +38,11 @@ const formatTeamName = (box: ServiceBoxType): string => {
 };
 
 export const ViewModeBox = ({ box, scheduleId }: ViewModeBoxProps) => {
-  const { updateServiceStatus } = useAppStore();
+  const { updateServiceStatus, updateBoxDepartureTime } = useAppStore();
   const [editingTimeId, setEditingTimeId] = useState<string | null>(null);
   const [editedTime, setEditedTime] = useState('');
+  const [editingDeparture, setEditingDeparture] = useState(false);
+  const [departureTime, setDepartureTime] = useState(box.departureTime || '');
   const teamName = formatTeamName(box);
 
   const handleStatusChange = (serviceId: string, status: ServiceStatus) => {
@@ -61,6 +63,13 @@ export const ViewModeBox = ({ box, scheduleId }: ViewModeBoxProps) => {
     setEditedTime('');
   };
 
+  const handleSaveDeparture = () => {
+    if (departureTime.match(/^\d{2}:\d{2}$/)) {
+      updateBoxDepartureTime(scheduleId, box.id, departureTime);
+    }
+    setEditingDeparture(false);
+  };
+
   return (
     <div className="glass-card p-4 animate-fade-in">
       <div className="flex items-center gap-2 mb-4">
@@ -72,10 +81,43 @@ export const ViewModeBox = ({ box, scheduleId }: ViewModeBoxProps) => {
             {teamName ? `${teamName}: ` : ''}(CAIXA {String(box.number).padStart(2, '0')})
           </h3>
           <div className="flex items-center gap-2">
-            {box.departureTime && (
-              <span className="text-[10px] text-accent font-bold bg-accent/10 px-1.5 py-0.5 rounded border border-accent/20">
-                SAÍDA: {box.departureTime}
-              </span>
+            {editingDeparture ? (
+              <div className="flex items-center gap-1">
+                <span className="text-[10px] text-accent font-bold">SAÍDA:</span>
+                <Input
+                  type="time"
+                  value={departureTime}
+                  onChange={(e) => setDepartureTime(e.target.value)}
+                  className="h-6 w-24 text-xs bg-secondary/50 border-border/50"
+                  autoFocus
+                />
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="h-6 px-2"
+                  onClick={handleSaveDeparture}
+                >
+                  <Check className="w-3 h-3" />
+                </Button>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="h-6 px-2"
+                  onClick={() => setEditingDeparture(false)}
+                >
+                  <X className="w-3 h-3" />
+                </Button>
+              </div>
+            ) : (
+              <button
+                onClick={() => {
+                  setDepartureTime(box.departureTime || '');
+                  setEditingDeparture(true);
+                }}
+                className="text-[10px] text-accent font-bold bg-accent/10 px-1.5 py-0.5 rounded border border-accent/20 hover:bg-accent/20 transition-colors cursor-pointer"
+              >
+                SAÍDA: {box.departureTime || '-- : --'}
+              </button>
             )}
             {box.status && (
               <span className="text-xs text-accent font-semibold">{box.status}</span>
