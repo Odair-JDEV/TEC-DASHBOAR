@@ -33,6 +33,7 @@ interface AppState {
   addService: (scheduleId: string, boxId: string, service: Omit<Service, 'id'>) => void;
   removeService: (scheduleId: string, boxId: string, serviceId: string) => void;
   updateServiceStatus: (scheduleId: string, boxId: string, serviceId: string, status: ServiceStatus, completedAt: string) => void;
+  moveService: (scheduleId: string, fromBoxId: string, toBoxId: string, serviceId: string) => void;
 }
 
 const generateId = () => Math.random().toString(36).substring(2, 9);
@@ -224,6 +225,40 @@ export const useAppStore = create<AppState>()(
                       }
                     : b
                 ),
+              };
+            }
+            return s;
+          });
+          const currentSchedule = schedules.find((s) => s.id === scheduleId) || state.currentSchedule;
+          return { schedules, currentSchedule };
+        }),
+
+      moveService: (scheduleId, fromBoxId, toBoxId, serviceId) =>
+        set((state) => {
+          const schedules = state.schedules.map((s) => {
+            if (s.id === scheduleId) {
+              const fromBox = s.boxes.find((b) => b.id === fromBoxId);
+              const service = fromBox?.services.find((srv) => srv.id === serviceId);
+
+              if (!service) return s;
+
+              return {
+                ...s,
+                boxes: s.boxes.map((b) => {
+                  if (b.id === fromBoxId) {
+                    return {
+                      ...b,
+                      services: b.services.filter((srv) => srv.id !== serviceId),
+                    };
+                  }
+                  if (b.id === toBoxId) {
+                    return {
+                      ...b,
+                      services: [...b.services, service],
+                    };
+                  }
+                  return b;
+                }),
               };
             }
             return s;
