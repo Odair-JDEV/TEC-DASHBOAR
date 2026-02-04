@@ -11,8 +11,12 @@ app.use(cors());
 app.use(express.json());
 
 // Database Connection
+// Database Connection
 const client = new pg.Pool({
     connectionString: process.env.DATABASE_URL,
+    ssl: {
+        rejectUnauthorized: false // Required for some Neon/Vercel environments
+    }
 });
 const db = drizzle(client, { schema });
 
@@ -27,7 +31,12 @@ app.get('/health', async (req, res) => {
         res.json({ status: 'ok', database: 'connected' });
     } catch (error) {
         console.error('Health check failed:', error);
-        res.status(500).json({ status: 'error', database: 'disconnected' });
+        // Log connection string presence (safe)
+        console.log('DB_URL exists?', !!process.env.DATABASE_URL);
+        if (error instanceof Error) {
+            console.log('Error details:', error.message, error.stack);
+        }
+        res.status(500).json({ status: 'error', database: 'disconnected', details: String(error) });
     }
 });
 
