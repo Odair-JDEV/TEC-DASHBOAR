@@ -14,32 +14,29 @@ interface ServiceBoxProps {
 }
 
 const SERVICE_TYPES: ServiceType[] = [
-  'LOSS',
   'LINK LOSS',
   'LENTIDÃO',
   'ATIVAÇÃO',
   'UPGRADE',
   'T.ENDEREÇO',
-  'TROCA DE ENDEREÇO',
   'T.EQUIPAMENTO',
-  'TROCA DE COMODO',
+  'T.COMODO',
   'SEM CONEXÃO',
-  'OFF',
-  'REALOCAR ONU',
   'SUPORTE',
   'UPGRADE + REPETIDOR',
   'UPGRADE/T.ENDEREÇO',
+  'UPGRADE/T.COMODO',
 ];
 
 export const ServiceBoxCard = ({ box, scheduleId }: ServiceBoxProps) => {
   const [osNumber, setOsNumber] = useState('');
   const [serviceType, setServiceType] = useState<ServiceType>('LOSS');
   const [status, setStatus] = useState(box.status || '');
-  const [departureTime, setDepartureTime] = useState(box.departureTime || '');
   const [showStatusInput, setShowStatusInput] = useState(!!box.status);
   const [isDragOver, setIsDragOver] = useState(false);
+  const [editingServiceId, setEditingServiceId] = useState<string | null>(null);
 
-  const { addService, removeService, updateBoxStatus, updateBoxDepartureTime, removeBox, moveService } = useAppStore();
+  const { addService, removeService, updateBoxStatus, removeBox, moveService, updateServiceType } = useAppStore();
 
   const handleAddService = () => {
     if (osNumber.trim()) {
@@ -53,9 +50,7 @@ export const ServiceBoxCard = ({ box, scheduleId }: ServiceBoxProps) => {
     if (!status) setShowStatusInput(false);
   };
 
-  const handleDepartureTimeBlur = () => {
-    updateBoxDepartureTime(scheduleId, box.id, departureTime);
-  };
+
 
   const handleDragStart = (e: React.DragEvent, serviceId: string) => {
     e.dataTransfer.effectAllowed = 'move';
@@ -89,9 +84,8 @@ export const ServiceBoxCard = ({ box, scheduleId }: ServiceBoxProps) => {
 
   return (
     <div
-      className={`glass-card p-4 animate-fade-in transition-all ${
-        isDragOver ? 'ring-2 ring-primary bg-primary/10' : ''
-      }`}
+      className={`glass-card p-4 animate-fade-in transition-all ${isDragOver ? 'ring-2 ring-primary bg-primary/10' : ''
+        }`}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
@@ -111,16 +105,7 @@ export const ServiceBoxCard = ({ box, scheduleId }: ServiceBoxProps) => {
           </div>
         </div>
         <div className="flex items-center gap-1">
-          <div className="flex items-center gap-1 mr-2">
-            <span className="text-[10px] text-muted-foreground uppercase font-semibold whitespace-nowrap">Saída:</span>
-            <Input
-              type="time"
-              value={departureTime}
-              onChange={(e) => setDepartureTime(e.target.value)}
-              onBlur={handleDepartureTimeBlur}
-              className="w-[85px] h-7 text-[11px] bg-secondary/50 border-border/50 px-2"
-            />
-          </div>
+
           {!showStatusInput ? (
             <Button
               variant="ghost"
@@ -199,7 +184,30 @@ export const ServiceBoxCard = ({ box, scheduleId }: ServiceBoxProps) => {
                 <span className="font-mono text-sm font-medium text-foreground">
                   {service.osNumber}
                 </span>
-                <ServiceBadge type={service.type} />
+                {editingServiceId === service.id ? (
+                  <Select
+                    defaultValue={service.type}
+                    onValueChange={(value) => {
+                      updateServiceType(scheduleId, box.id, service.id, value);
+                      setEditingServiceId(null);
+                    }}
+                  >
+                    <SelectTrigger className="h-6 w-32 text-xs bg-secondary/50 border-border/50">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {SERVICE_TYPES.map((type) => (
+                        <SelectItem key={type} value={type}>
+                          {type}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                ) : (
+                  <div onClick={() => setEditingServiceId(service.id)} className="cursor-pointer hover:opacity-80 transition-opacity" title="Clique para alterar o tipo">
+                    <ServiceBadge type={service.type} />
+                  </div>
+                )}
               </div>
               <button
                 onClick={() => removeService(scheduleId, box.id, service.id)}

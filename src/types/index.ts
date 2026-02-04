@@ -6,7 +6,7 @@ export interface Technician {
 export interface Team {
   id: string;
   members: Technician[];
-  type: 'solo' | 'dupla' | 'trio';
+  type: 'solo' | 'dupla' | 'trio' | 'equipe';
 }
 
 export interface ServiceBox {
@@ -15,6 +15,7 @@ export interface ServiceBox {
   team: Team | null;
   status?: string; // ex: "TOKYO"
   departureTime?: string; // HH:mm format
+  returnTime?: string; // HH:mm format
   services: Service[];
 }
 
@@ -28,12 +29,12 @@ export interface Service {
   completedAt?: string; // HH:mm format
 }
 
-export type ServiceType = 
-  | 'LOSS' 
+export type ServiceType =
+  | 'LOSS'
   | 'LINK LOSS'
-  | 'LENTIDÃO' 
-  | 'ATIVAÇÃO' 
-  | 'UPGRADE' 
+  | 'LENTIDÃO'
+  | 'ATIVAÇÃO'
+  | 'UPGRADE'
   | 'T.ENDEREÇO'
   | 'TROCA DE ENDEREÇO'
   | 'T.EQUIPAMENTO'
@@ -51,5 +52,6 @@ export interface Schedule {
   id: string;
   date: string;
   shift: Shift;
+  notes?: string;
   boxes: ServiceBox[];
 }

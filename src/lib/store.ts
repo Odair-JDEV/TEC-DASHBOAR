@@ -1,6 +1,6 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
-import { Technician, ServiceBox, Schedule, Service, Shift, Team, ServiceStatus } from '@/types';
+// import { persist } from 'zustand/middleware';
+import { Technician, ServiceBox, Schedule, Service, Shift, Team, ServiceStatus, ServiceType } from '@/types';
 
 type AppMode = 'edit' | 'view';
 
@@ -9,266 +9,449 @@ interface AppState {
   schedules: Schedule[];
   currentSchedule: Schedule | null;
   mode: AppMode;
-  
+  dbStatus: 'connected' | 'disconnected' | 'checking';
+
   // Mode
   setMode: (mode: AppMode) => void;
-  
+
+  fetchState: () => Promise<void>;
+  checkDbStatus: () => Promise<void>;
+
   // Technicians
   addTechnician: (name: string) => void;
   removeTechnician: (id: string) => void;
-  
+
   // Schedules
   createSchedule: (date: string, shift: Shift) => void;
   setCurrentSchedule: (schedule: Schedule | null) => void;
   deleteSchedule: (id: string) => void;
-  
+  updateScheduleNotes: (id: string, notes: string) => void;
+
   // Boxes
   addBox: (scheduleId: string) => void;
   removeBox: (scheduleId: string, boxId: string) => void;
   updateBoxTeam: (scheduleId: string, boxId: string, team: Team | null) => void;
   updateBoxStatus: (scheduleId: string, boxId: string, status: string) => void;
   updateBoxDepartureTime: (scheduleId: string, boxId: string, departureTime: string) => void;
-  
+  updateBoxReturnTime: (scheduleId: string, boxId: string, returnTime: string) => void;
+
   // Services
-  addService: (scheduleId: string, boxId: string, service: Omit<Service, 'id'>) => void;
-  removeService: (scheduleId: string, boxId: string, serviceId: string) => void;
-  updateServiceStatus: (scheduleId: string, boxId: string, serviceId: string, status: ServiceStatus, completedAt: string) => void;
-  moveService: (scheduleId: string, fromBoxId: string, toBoxId: string, serviceId: string) => void;
+
+  addService: (scheduleId: string, boxId: string, service: Omit<Service, 'id'>) => Promise<void>;
+  removeService: (scheduleId: string, boxId: string, serviceId: string) => Promise<void>;
+  updateServiceStatus: (scheduleId: string, boxId: string, serviceId: string, status: ServiceStatus, completedAt: string) => Promise<void>;
+  updateServiceType: (scheduleId: string, boxId: string, serviceId: string, type: string) => Promise<void>;
+  moveService: (scheduleId: string, fromBoxId: string, toBoxId: string, serviceId: string) => Promise<void>;
 }
 
 const generateId = () => Math.random().toString(36).substring(2, 9);
 
 export const useAppStore = create<AppState>()(
-  persist(
-    (set, get) => ({
-      technicians: [
-        { id: '1', name: 'WESLEY' },
-        { id: '2', name: 'YURI' },
-        { id: '3', name: 'EVERTON' },
-        { id: '4', name: 'DANIEL' },
-        { id: '5', name: 'BRUNO' },
-        { id: '6', name: 'MASTERSON' },
-        { id: '7', name: 'AILTON' },
-        { id: '8', name: 'SAMUEL' },
-        { id: '9', name: 'PEDRO' },
-        { id: '10', name: 'FELIPE' },
-      ],
-      schedules: [],
-      currentSchedule: null,
-      mode: 'view',
+  (set, get) => ({
+    technicians: [],
+    schedules: [],
+    currentSchedule: null,
+    currentSchedule: null,
+    mode: 'view',
+    dbStatus: 'checking',
 
-      setMode: (mode) => set({ mode }),
+    setMode: (mode) => set({ mode }),
 
-      addTechnician: (name) =>
-        set((state) => ({
-          technicians: [...state.technicians, { id: generateId(), name: name.toUpperCase() }],
-        })),
+    checkDbStatus: async () => {
+      try {
+        const res = await fetch('/health');
+        const data = await res.json();
+        set({ dbStatus: data.database === 'connected' ? 'connected' : 'disconnected' });
+      } catch (err) {
+        set({ dbStatus: 'disconnected' });
+      }
+    },
 
-      removeTechnician: (id) =>
-        set((state) => ({
-          technicians: state.technicians.filter((t) => t.id !== id),
-        })),
+    // Initial Load
+    fetchState: async () => {
+      try {
+        const res = await fetch('/api/state');
+        const data = await res.json();
+        set({
+          technicians: data.technicians || [],
+          schedules: data.schedules.map((s: any) => ({
+            ...s,
+            boxes: s.boxes.map((b: any) => ({
+              ...b,
+              services: b.services || [] // Ensure services array exists
+            }))
+          })) || []
+        });
+      } catch (err) {
+        console.error('Failed to fetch state', err);
+      }
+    },
 
-      createSchedule: (date, shift) => {
-        const newSchedule: Schedule = {
+    addTechnician: async (name) => {
+      const id = generateId();
+      // Optimistic
+      set((state) => ({ technicians: [...state.technicians, { id, name: name.toUpperCase() }] }));
+      // Sync
+      fetch('/api/technicians', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, name: name.toUpperCase() })
+      });
+    },
+
+    removeTechnician: async (id) => {
+      set((state) => ({ technicians: state.technicians.filter((t) => t.id !== id) }));
+      fetch(`/api/technicians/${id}`, { method: 'DELETE' });
+    },
+
+    createSchedule: async (date, shift) => {
+      const newSchedule: Schedule = {
+        id: generateId(),
+        date,
+        shift,
+        boxes: Array.from({ length: 5 }, (_, i) => ({
           id: generateId(),
-          date,
-          shift,
-          boxes: Array.from({ length: 5 }, (_, i) => ({
-            id: generateId(),
-            number: i + 1,
-            team: null,
-            services: [],
-          })),
-        };
-        set((state) => ({
-          schedules: [...state.schedules, newSchedule],
-          currentSchedule: newSchedule,
-        }));
-      },
-
-      setCurrentSchedule: (schedule) => set({ currentSchedule: schedule }),
-
-      deleteSchedule: (id) =>
-        set((state) => ({
-          schedules: state.schedules.filter((s) => s.id !== id),
-          currentSchedule: state.currentSchedule?.id === id ? null : state.currentSchedule,
+          number: i + 1,
+          team: null,
+          services: [],
         })),
+      };
 
-      addBox: (scheduleId) =>
-        set((state) => {
-          const schedules = state.schedules.map((s) => {
-            if (s.id === scheduleId) {
-              const maxNumber = Math.max(...s.boxes.map((b) => b.number), 0);
-              return {
-                ...s,
-                boxes: [
-                  ...s.boxes,
-                  { id: generateId(), number: maxNumber + 1, team: null, services: [] },
-                ],
-              };
-            }
-            return s;
+      // Optimistic Update
+      set((state) => ({
+        schedules: [newSchedule, ...state.schedules], // Add to top since backend sorts by date desc
+        currentSchedule: newSchedule,
+      }));
+
+      // Sync
+      try {
+        await fetch('http://localhost:3000/api/schedules', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(newSchedule)
+        });
+        // In a real app, we might reload state here to get "clean" data or IDs if DB generated them
+      } catch (e) {
+        console.error('Failed to save schedule');
+        // Rollback?
+      }
+    },
+
+    setCurrentSchedule: (schedule) => set({ currentSchedule: schedule }),
+
+    deleteSchedule: async (id) => {
+      set((state) => ({
+        schedules: state.schedules.filter((s) => s.id !== id),
+        currentSchedule: state.currentSchedule?.id === id ? null : state.currentSchedule,
+      }));
+      fetch(`/api/schedules/${id}`, { method: 'DELETE' });
+    },
+
+    updateScheduleNotes: async (id, notes) => {
+      set((state) => {
+        const schedules = state.schedules.map((s) => (s.id === id ? { ...s, notes } : s));
+        const currentSchedule = schedules.find((s) => s.id === id) || state.currentSchedule;
+        return { schedules, currentSchedule };
+      });
+      fetch(`/api/schedules/${id}/notes`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ notes })
+      });
+    },
+
+    addBox: async (scheduleId) => {
+      let newBox: any;
+      set((state) => {
+        const schedules = state.schedules.map((s) => {
+          if (s.id === scheduleId) {
+            const maxNumber = Math.max(...s.boxes.map((b) => b.number), 0);
+            newBox = { id: generateId(), number: maxNumber + 1, team: null, services: [] };
+            return {
+              ...s,
+              boxes: [...s.boxes, newBox],
+            };
+          }
+          return s;
+        });
+        const currentSchedule = schedules.find((s) => s.id === scheduleId) || state.currentSchedule;
+        // Sync
+        if (newBox) {
+          fetch('/api/boxes', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ scheduleId, box: newBox })
           });
-          const currentSchedule = schedules.find((s) => s.id === scheduleId) || state.currentSchedule;
-          return { schedules, currentSchedule };
-        }),
+        }
+        return { schedules, currentSchedule };
+      });
+    },
 
-      removeBox: (scheduleId, boxId) =>
-        set((state) => {
-          const schedules = state.schedules.map((s) => {
-            if (s.id === scheduleId) {
-              return { ...s, boxes: s.boxes.filter((b) => b.id !== boxId) };
-            }
-            return s;
-          });
-          const currentSchedule = schedules.find((s) => s.id === scheduleId) || state.currentSchedule;
-          return { schedules, currentSchedule };
-        }),
+    removeBox: async (scheduleId, boxId) => {
+      set((state) => {
+        const schedules = state.schedules.map((s) => {
+          if (s.id === scheduleId) {
+            return { ...s, boxes: s.boxes.filter((b) => b.id !== boxId) };
+          }
+          return s;
+        });
+        const currentSchedule = schedules.find((s) => s.id === scheduleId) || state.currentSchedule;
+        return { schedules, currentSchedule };
+      });
+      fetch(`/api/boxes/${boxId}`, { method: 'DELETE' });
+    },
 
-      updateBoxTeam: (scheduleId, boxId, team) =>
-        set((state) => {
-          const schedules = state.schedules.map((s) => {
-            if (s.id === scheduleId) {
-              return {
-                ...s,
-                boxes: s.boxes.map((b) => (b.id === boxId ? { ...b, team } : b)),
-              };
-            }
-            return s;
-          });
-          const currentSchedule = schedules.find((s) => s.id === scheduleId) || state.currentSchedule;
-          return { schedules, currentSchedule };
-        }),
+    updateBoxTeam: async (scheduleId, boxId, team) => {
+      set((state) => {
+        // ... existing logic ...
+        const schedules = state.schedules.map((s) => {
+          if (s.id === scheduleId) {
+            return {
+              ...s,
+              boxes: s.boxes.map((b) => (b.id === boxId ? { ...b, team } : b)),
+            };
+          }
+          return s;
+        });
+        const currentSchedule = schedules.find((s) => s.id === scheduleId) || state.currentSchedule;
 
-      updateBoxStatus: (scheduleId, boxId, status) =>
-        set((state) => {
-          const schedules = state.schedules.map((s) => {
-            if (s.id === scheduleId) {
-              return {
-                ...s,
-                boxes: s.boxes.map((b) => (b.id === boxId ? { ...b, status } : b)),
-              };
-            }
-            return s;
-          });
-          const currentSchedule = schedules.find((s) => s.id === scheduleId) || state.currentSchedule;
-          return { schedules, currentSchedule };
-        }),
+        // Sync Box (Full update or partial?)
+        // Since our API has PUT /api/boxes/:id, we can just send the updated fields
+        fetch(`/api/boxes/${boxId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ team })
+        });
 
-      updateBoxDepartureTime: (scheduleId, boxId, departureTime) =>
-        set((state) => {
-          const schedules = state.schedules.map((s) => {
-            if (s.id === scheduleId) {
-              return {
-                ...s,
-                boxes: s.boxes.map((b) => (b.id === boxId ? { ...b, departureTime } : b)),
-              };
-            }
-            return s;
-          });
-          const currentSchedule = schedules.find((s) => s.id === scheduleId) || state.currentSchedule;
-          return { schedules, currentSchedule };
-        }),
+        return { schedules, currentSchedule };
+      });
+    },
 
-      addService: (scheduleId, boxId, service) =>
-        set((state) => {
-          const schedules = state.schedules.map((s) => {
-            if (s.id === scheduleId) {
-              return {
-                ...s,
-                boxes: s.boxes.map((b) =>
-                  b.id === boxId
-                    ? { ...b, services: [...b.services, { ...service, id: generateId() }] }
-                    : b
-                ),
-              };
-            }
-            return s;
-          });
-          const currentSchedule = schedules.find((s) => s.id === scheduleId) || state.currentSchedule;
-          return { schedules, currentSchedule };
-        }),
+    updateBoxStatus: async (scheduleId, boxId, status) => {
+      set((state) => {
+        const schedules = state.schedules.map((s) => {
+          if (s.id === scheduleId) {
+            return {
+              ...s,
+              boxes: s.boxes.map((b) => (b.id === boxId ? { ...b, status } : b)),
+            };
+          }
+          return s;
+        });
+        const currentSchedule = schedules.find((s) => s.id === scheduleId) || state.currentSchedule;
 
-      removeService: (scheduleId, boxId, serviceId) =>
-        set((state) => {
-          const schedules = state.schedules.map((s) => {
-            if (s.id === scheduleId) {
-              return {
-                ...s,
-                boxes: s.boxes.map((b) =>
-                  b.id === boxId
-                    ? { ...b, services: b.services.filter((srv) => srv.id !== serviceId) }
-                    : b
-                ),
-              };
-            }
-            return s;
-          });
-          const currentSchedule = schedules.find((s) => s.id === scheduleId) || state.currentSchedule;
-          return { schedules, currentSchedule };
-        }),
+        fetch(`/api/boxes/${boxId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status })
+        });
 
-      updateServiceStatus: (scheduleId, boxId, serviceId, status, completedAt) =>
-        set((state) => {
-          const schedules = state.schedules.map((s) => {
-            if (s.id === scheduleId) {
-              return {
-                ...s,
-                boxes: s.boxes.map((b) =>
-                  b.id === boxId
-                    ? {
-                        ...b,
-                        services: b.services.map((srv) =>
-                          srv.id === serviceId ? { ...srv, status, completedAt } : srv
-                        ),
-                      }
-                    : b
-                ),
-              };
-            }
-            return s;
-          });
-          const currentSchedule = schedules.find((s) => s.id === scheduleId) || state.currentSchedule;
-          return { schedules, currentSchedule };
-        }),
+        return { schedules, currentSchedule };
+      });
+    },
 
-      moveService: (scheduleId, fromBoxId, toBoxId, serviceId) =>
-        set((state) => {
-          const schedules = state.schedules.map((s) => {
-            if (s.id === scheduleId) {
-              const fromBox = s.boxes.find((b) => b.id === fromBoxId);
-              const service = fromBox?.services.find((srv) => srv.id === serviceId);
+    updateBoxDepartureTime: async (scheduleId, boxId, departureTime) => {
+      set((state) => {
+        const schedules = state.schedules.map((s) => {
+          if (s.id === scheduleId) {
+            return {
+              ...s,
+              boxes: s.boxes.map((b) => (b.id === boxId ? { ...b, departureTime } : b)),
+            };
+          }
+          return s;
+        });
+        const currentSchedule = schedules.find((s) => s.id === scheduleId) || state.currentSchedule;
 
-              if (!service) return s;
+        fetch(`/api/boxes/${boxId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ departureTime })
+        });
 
-              return {
-                ...s,
-                boxes: s.boxes.map((b) => {
-                  if (b.id === fromBoxId) {
-                    return {
-                      ...b,
-                      services: b.services.filter((srv) => srv.id !== serviceId),
-                    };
+        return { schedules, currentSchedule };
+      });
+    },
+
+    updateBoxReturnTime: async (scheduleId, boxId, returnTime) => {
+      set((state) => {
+        const schedules = state.schedules.map((s) => {
+          if (s.id === scheduleId) {
+            return {
+              ...s,
+              boxes: s.boxes.map((b) => (b.id === boxId ? { ...b, returnTime } : b)),
+            };
+          }
+          return s;
+        });
+        const currentSchedule = schedules.find((s) => s.id === scheduleId) || state.currentSchedule;
+
+        fetch(`/api/boxes/${boxId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ returnTime })
+        });
+
+        return { schedules, currentSchedule };
+      });
+    },
+
+    addService: async (scheduleId, boxId, service) => {
+      const newService = { ...service, id: generateId() };
+      set((state) => {
+        const schedules = state.schedules.map((s) => {
+          if (s.id === scheduleId) {
+            return {
+              ...s,
+              boxes: s.boxes.map((b) =>
+                b.id === boxId
+                  ? { ...b, services: [...b.services, newService] }
+                  : b
+              ),
+            };
+          }
+          return s;
+        });
+        const currentSchedule = schedules.find((s) => s.id === scheduleId) || state.currentSchedule;
+
+        fetch('http://localhost:3000/api/services', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ boxId, service: newService })
+        });
+
+        return { schedules, currentSchedule };
+      });
+    },
+
+    removeService: async (scheduleId, boxId, serviceId) => {
+      set((state) => {
+        const schedules = state.schedules.map((s) => {
+          if (s.id === scheduleId) {
+            return {
+              ...s,
+              boxes: s.boxes.map((b) =>
+                b.id === boxId
+                  ? { ...b, services: b.services.filter((srv) => srv.id !== serviceId) }
+                  : b
+              ),
+            };
+          }
+          return s;
+        });
+        const currentSchedule = schedules.find((s) => s.id === scheduleId) || state.currentSchedule;
+
+        fetch(`/api/services/${serviceId}`, { method: 'DELETE' });
+
+        return { schedules, currentSchedule };
+      });
+    },
+
+    updateServiceStatus: async (scheduleId, boxId, serviceId, status, completedAt) => {
+      set((state) => {
+        const schedules = state.schedules.map((s) => {
+          if (s.id === scheduleId) {
+            return {
+              ...s,
+              boxes: s.boxes.map((b) =>
+                b.id === boxId
+                  ? {
+                    ...b,
+                    services: b.services.map((srv) =>
+                      srv.id === serviceId ? { ...srv, status, completedAt } : srv
+                    ),
                   }
-                  if (b.id === toBoxId) {
-                    return {
-                      ...b,
-                      services: [...b.services, service],
-                    };
+                  : b
+              ),
+            };
+          }
+          return s;
+        });
+        const currentSchedule = schedules.find((s) => s.id === scheduleId) || state.currentSchedule;
+
+        fetch(`/api/services/${serviceId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status, completedAt })
+        });
+
+        return { schedules, currentSchedule };
+      });
+    },
+
+    updateServiceType: async (scheduleId, boxId, serviceId, type) => {
+      set((state) => {
+        const schedules = state.schedules.map((s) => {
+          if (s.id === scheduleId) {
+            return {
+              ...s,
+              boxes: s.boxes.map((b) =>
+                b.id === boxId
+                  ? {
+                    ...b,
+                    services: b.services.map((srv) =>
+                      srv.id === serviceId ? { ...srv, type: type as ServiceType } : srv
+                    ),
                   }
-                  return b;
-                }),
-              };
-            }
-            return s;
-          });
-          const currentSchedule = schedules.find((s) => s.id === scheduleId) || state.currentSchedule;
-          return { schedules, currentSchedule };
-        }),
-    }),
-    {
-      name: 'field-service-storage',
-    }
-  )
+                  : b
+              ),
+            };
+          }
+          return s;
+        });
+        const currentSchedule = schedules.find((s) => s.id === scheduleId) || state.currentSchedule;
+
+        fetch(`/api/services/${serviceId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ type })
+        });
+
+        return { schedules, currentSchedule };
+      });
+    },
+
+    moveService: async (scheduleId, fromBoxId, toBoxId, serviceId) => {
+      set((state) => {
+        // ... logic ...
+        const schedules = state.schedules.map((s) => {
+          if (s.id === scheduleId) {
+            const fromBox = s.boxes.find((b) => b.id === fromBoxId);
+            const service = fromBox?.services.find((srv) => srv.id === serviceId);
+
+            if (!service) return s;
+
+            return {
+              ...s,
+              boxes: s.boxes.map((b) => {
+                if (b.id === fromBoxId) {
+                  return {
+                    ...b,
+                    services: b.services.filter((srv) => srv.id !== serviceId),
+                  };
+                }
+                if (b.id === toBoxId) {
+                  return {
+                    ...b,
+                    services: [...b.services, service],
+                  };
+                }
+                return b;
+              }),
+            };
+          }
+          return s;
+        });
+        const currentSchedule = schedules.find((s) => s.id === scheduleId) || state.currentSchedule;
+
+        fetch('http://localhost:3000/api/services/move', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ serviceId, toBoxId })
+        });
+
+        return { schedules, currentSchedule };
+      });
+    },
+  })
 );

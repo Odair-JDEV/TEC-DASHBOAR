@@ -3,7 +3,7 @@ import { useAppStore } from '@/lib/store';
 import { ServiceBox as ServiceBoxType, ServiceStatus } from '@/types';
 import { ServiceBadge } from './ServiceBadge';
 import { ServiceStatusBadge } from './ServiceStatusBadge';
-import { Box, Check, X, Clock, Pencil } from 'lucide-react';
+import { Box, Check, X, Clock, Pencil, GripVertical } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -23,7 +23,7 @@ const formatTeamName = (box: ServiceBoxType): string => {
   if (!box.team || box.team.members.length === 0) {
     return '';
   }
-  
+
   const names = box.team.members.map(m => m.name);
   if (names.length === 1) {
     return names[0];
@@ -38,12 +38,45 @@ const formatTeamName = (box: ServiceBoxType): string => {
 };
 
 export const ViewModeBox = ({ box, scheduleId }: ViewModeBoxProps) => {
-  const { updateServiceStatus, updateBoxDepartureTime } = useAppStore();
+  const { updateServiceStatus, updateBoxDepartureTime, moveService, updateBoxReturnTime } = useAppStore();
   const [editingTimeId, setEditingTimeId] = useState<string | null>(null);
   const [editedTime, setEditedTime] = useState('');
   const [editingDeparture, setEditingDeparture] = useState(false);
   const [departureTime, setDepartureTime] = useState(box.departureTime || '');
+  const [editingReturn, setEditingReturn] = useState(false);
+  const [returnTime, setReturnTime] = useState(box.returnTime || '');
+  const [isDragOver, setIsDragOver] = useState(false);
   const teamName = formatTeamName(box);
+
+  const handleDragStart = (e: React.DragEvent, serviceId: string) => {
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('serviceId', serviceId);
+    e.dataTransfer.setData('fromBoxId', box.id);
+    e.dataTransfer.setData('scheduleId', scheduleId);
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    setIsDragOver(true);
+  };
+
+  const handleDragLeave = () => {
+    setIsDragOver(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
+
+    const serviceId = e.dataTransfer.getData('serviceId');
+    const fromBoxId = e.dataTransfer.getData('fromBoxId');
+    const dragScheduleId = e.dataTransfer.getData('scheduleId');
+
+    if (dragScheduleId === scheduleId && fromBoxId !== box.id) {
+      moveService(scheduleId, fromBoxId, box.id, serviceId);
+    }
+  };
 
   const handleStatusChange = (serviceId: string, status: ServiceStatus) => {
     const now = format(new Date(), 'HH:mm');
@@ -71,7 +104,13 @@ export const ViewModeBox = ({ box, scheduleId }: ViewModeBoxProps) => {
   };
 
   return (
-    <div className="glass-card p-4 animate-fade-in">
+    <div
+      className={`glass-card p-4 animate-fade-in transition-all ${isDragOver ? 'ring-2 ring-primary bg-primary/10' : ''
+        }`}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+    >
       <div className="flex items-center gap-2 mb-4">
         <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-accent/20">
           <Box className="w-4 h-4 text-accent" />
@@ -122,6 +161,51 @@ export const ViewModeBox = ({ box, scheduleId }: ViewModeBoxProps) => {
             {box.status && (
               <span className="text-xs text-accent font-semibold">{box.status}</span>
             )}
+
+            {/* Return Time (GALPÃO) */}
+            {editingReturn ? (
+              <div className="flex items-center gap-1 ml-2">
+                <span className="text-[10px] text-accent font-bold">GALPÃO:</span>
+                <Input
+                  type="time"
+                  value={returnTime}
+                  onChange={(e) => setReturnTime(e.target.value)}
+                  className="h-6 w-24 text-xs bg-secondary/50 border-border/50"
+                  autoFocus
+                />
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="h-6 px-2"
+                  onClick={() => {
+                    if (returnTime.match(/^\d{2}:\d{2}$/)) {
+                      updateBoxReturnTime(scheduleId, box.id, returnTime);
+                    }
+                    setEditingReturn(false);
+                  }}
+                >
+                  <Check className="w-3 h-3" />
+                </Button>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="h-6 px-2"
+                  onClick={() => setEditingReturn(false)}
+                >
+                  <X className="w-3 h-3" />
+                </Button>
+              </div>
+            ) : (
+              <button
+                onClick={() => {
+                  setReturnTime(box.returnTime || '');
+                  setEditingReturn(true);
+                }}
+                className="ml-2 text-[10px] text-accent font-bold bg-accent/10 px-1.5 py-0.5 rounded border border-accent/20 hover:bg-accent/20 transition-colors cursor-pointer"
+              >
+                GALPÃO: {box.returnTime || '-- : --'}
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -135,10 +219,13 @@ export const ViewModeBox = ({ box, scheduleId }: ViewModeBoxProps) => {
           box.services.map((service) => (
             <div
               key={service.id}
-              className="p-3 bg-secondary/30 rounded-lg space-y-2"
+              draggable
+              onDragStart={(e) => handleDragStart(e, service.id)}
+              className="p-3 bg-secondary/30 rounded-lg space-y-2 cursor-move group hover:bg-secondary/50 transition-colors"
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
+                  <GripVertical className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
                   <span className="font-mono text-sm font-medium text-foreground">
                     {service.osNumber}
                   </span>

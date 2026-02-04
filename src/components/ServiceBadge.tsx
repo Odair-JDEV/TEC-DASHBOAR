@@ -5,8 +5,12 @@ interface ServiceBadgeProps {
 }
 
 const getServiceClass = (type: ServiceType): string => {
+  if (!type || typeof type !== 'string') {
+    return 'service-outros';
+  }
+
   const lowerType = type.toLowerCase();
-  
+
   if (lowerType.includes('loss') || lowerType === 'off') {
     return 'service-loss';
   }
@@ -19,12 +23,12 @@ const getServiceClass = (type: ServiceType): string => {
   if (lowerType.includes('lentidão') || lowerType.includes('lentidao')) {
     return 'service-lentidao';
   }
-  if (lowerType.includes('endereço') || lowerType.includes('endereco') || 
-      lowerType.includes('comodo') || lowerType.includes('cômodo') ||
-      lowerType.includes('equipamento') || lowerType.includes('realocar')) {
+  if (lowerType.includes('endereço') || lowerType.includes('endereco') ||
+    lowerType.includes('comodo') || lowerType.includes('cômodo') ||
+    lowerType.includes('equipamento') || lowerType.includes('realocar')) {
     return 'service-troca';
   }
-  
+
   return 'service-outros';
 };
 

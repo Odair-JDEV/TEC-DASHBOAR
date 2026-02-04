@@ -20,6 +20,17 @@ const MAX_SCHEDULES = 3000;
 
 // --- API ROUTES ---
 
+// Health Check / DB Status
+app.get('/health', async (req, res) => {
+    try {
+        await db.execute(sql`SELECT 1`);
+        res.json({ status: 'ok', database: 'connected' });
+    } catch (error) {
+        console.error('Health check failed:', error);
+        res.status(500).json({ status: 'error', database: 'disconnected' });
+    }
+});
+
 // GET All Data (Initial Load)
 app.get('/api/state', async (req, res) => {
     try {
