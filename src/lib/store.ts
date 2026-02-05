@@ -137,7 +137,7 @@ export const useAppStore = create<AppState>()(
 
       // Sync
       try {
-        await fetch('http://localhost:3000/api/schedules', {
+        await fetch('/api/schedules', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(newSchedule)
@@ -326,7 +326,7 @@ export const useAppStore = create<AppState>()(
         });
         const currentSchedule = schedules.find((s) => s.id === scheduleId) || state.currentSchedule;
 
-        fetch('http://localhost:3000/api/services', {
+        fetch('/api/services', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ boxId, service: newService })
@@ -456,7 +456,7 @@ export const useAppStore = create<AppState>()(
         });
         const currentSchedule = schedules.find((s) => s.id === scheduleId) || state.currentSchedule;
 
-        fetch('http://localhost:3000/api/services/move', {
+        fetch('/api/services/move', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ serviceId, toBoxId })
