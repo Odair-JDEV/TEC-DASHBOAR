@@ -251,18 +251,17 @@ app.post('/api/services/move', async (req, res) => {
 // --- Service Types (Dynamic Categories) ---
 
 const DEFAULT_SERVICE_TYPES = [
-    'ATIVAÇÃO', 'LINK-LOSS', 'LENTIDÃO', 'DYNGGASP', 'REANC-FIBRA', 'T.FIBRA',
-    'T.EQUIPAMENTO', 'T.COMODO', 'T.ENDEREÇO',
-    'T.EQUIPAMENTO-UPGRADE', 'T.COMODO-UPGRADE', 'T.ENDEREÇO-UPGRADE'
+    'ATIVAÇÃO', 'LINK-LOSS', 'LENTIDÃO', 'DYNGGASP', 'REANC-FIBRA',
+    'T.FIBRA', 'T.EQUIPAMENTO', 'T.COMODO', 'T.ENDEREÇO',
+    'T.EQUIPAMENTO+UPGRADE', 'T.COMODO+UPGRADE', 'T.ENDEREÇO+UPGRADE',
+    'REPETIDO', 'REALOC-EQUIPAMENTO', 'REATIVAÇÃO', 'RETIRADA'
 ];
 
-// Seed Service Types if empty
-// Seed Service Types (Smart Sync)
+// Seed Service Types (Smart Sync - Add Only)
 async function seedServiceTypes() {
     try {
         const existing = await db.query.serviceTypes.findMany();
         const existingNames = new Set(existing.map(t => t.name));
-        const targetNames = new Set(DEFAULT_SERVICE_TYPES);
 
         // 1. Add missing types
         const toAdd = DEFAULT_SERVICE_TYPES.filter(name => !existingNames.has(name));
@@ -276,19 +275,10 @@ async function seedServiceTypes() {
             }
         }
 
-        // 2. Remove extra types (that are not in the new default list)
-        const toRemove = existing.filter(t => !targetNames.has(t.name));
-        if (toRemove.length > 0) {
-            console.log(`Removing ${toRemove.length} obsolete service types...`);
-            for (const type of toRemove) {
-                await db.delete(schema.serviceTypes).where(eq(schema.serviceTypes.id, type.id));
-            }
-        }
-
-        if (toAdd.length === 0 && toRemove.length === 0) {
-            console.log('Service types are already in sync.');
+        if (toAdd.length === 0) {
+            console.log('Default service types are already present.');
         } else {
-            console.log('Service types synchronization complete.');
+            console.log('Service types seeding complete.');
         }
 
     } catch (error) {
