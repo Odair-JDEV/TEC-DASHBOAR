@@ -251,9 +251,9 @@ app.post('/api/services/move', async (req, res) => {
 // --- Service Types (Dynamic Categories) ---
 
 const DEFAULT_SERVICE_TYPES = [
-    'LINK LOSS', 'LENTIDÃO', 'ATIVAÇÃO', 'UPGRADE', 'T.ENDEREÇO',
-    'T.EQUIPAMENTO', 'T.COMODO', 'SEM CONEXÃO', 'SUPORTE',
-    'UPGRADE + REPETIDOR', 'UPGRADE/T.ENDEREÇO', 'UPGRADE/T.COMODO'
+    'ATIVAÇÃO', 'LINK-LOSS', 'LENTIDÃO', 'DYNGGASP', 'REANC-FIBRA', 'T.FIBRA',
+    'T.EQUIPAMENTO', 'T.COMODO', 'T.ENDEREÇO',
+    'T.EQUIPAMENTO-UPGRADE', 'T.COMODO-UPGRADE', 'T.ENDEREÇO-UPGRADE'
 ];
 
 // Seed Service Types if empty
