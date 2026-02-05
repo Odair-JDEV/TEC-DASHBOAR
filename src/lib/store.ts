@@ -32,6 +32,7 @@ interface AppState {
   deleteSchedule: (id: string) => void;
   updateScheduleNotes: (id: string, notes: string) => void;
   updateScheduleDate: (id: string, date: string) => void;
+  updateScheduleShift: (id: string, shift: Shift) => void;
 
   // Boxes
   addBox: (scheduleId: string) => void;

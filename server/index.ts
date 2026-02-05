@@ -182,6 +182,17 @@ app.put('/api/schedules/:id/date', async (req, res) => {
     }
 });
 
+app.put('/api/schedules/:id/shift', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { shift } = req.body;
+        await db.update(schema.schedules).set({ shift }).where(eq(schema.schedules.id, id));
+        res.json({ success: true });
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to update shift' });
+    }
+});
+
 // --- Boxes & Services Updates (Granular or Full Sync?) ---
 // For simplicity and speed in migration, we can expose specific endpoints or a "Sync Schedule" endpoint.
 // Given the granular actions in the store (updateBoxTeam, addService, etc.), specific endpoints are better for performance

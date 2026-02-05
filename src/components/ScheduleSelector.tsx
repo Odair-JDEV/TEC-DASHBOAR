@@ -22,7 +22,7 @@ export const ScheduleSelector = () => {
   const [date, setDate] = useState(format(new Date(), 'yyyy-MM-dd'));
   const [shift, setShift] = useState<Shift>('MANHÃ');
 
-  const { schedules, currentSchedule, createSchedule, setCurrentSchedule, deleteSchedule, updateScheduleNotes, updateScheduleDate, mode } = useAppStore();
+  const { schedules, currentSchedule, createSchedule, setCurrentSchedule, deleteSchedule, updateScheduleNotes, updateScheduleDate, updateScheduleShift, mode } = useAppStore();
 
   const [editingScheduleId, setEditingScheduleId] = useState<string | null>(null);
   const [notes, setNotes] = useState('');
@@ -187,7 +187,31 @@ export const ScheduleSelector = () => {
                     </div>
                   </PopoverContent>
                 </Popover>
-                <p className="text-xs text-muted-foreground">{schedule.shift}</p>
+
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <p className="text-xs text-muted-foreground hover:text-primary cursor-pointer hover:underline" onClick={(e) => e.stopPropagation()}>
+                      {schedule.shift}
+                    </p>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-3" onClick={(e) => e.stopPropagation()}>
+                    <div className="space-y-2">
+                      <h4 className="font-medium text-xs text-muted-foreground uppercase">Alterar Turno</h4>
+                      <Select
+                        defaultValue={schedule.shift}
+                        onValueChange={(v) => updateScheduleShift(schedule.id, v as Shift)}
+                      >
+                        <SelectTrigger className="h-8 w-32 text-xs">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="MANHÃ">MANHÃ</SelectItem>
+                          <SelectItem value="TARDE">TARDE</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </PopoverContent>
+                </Popover>
                 {filterOS && (
                   <p className="text-[10px] font-bold text-primary mt-1">
                     Equipe: {schedule.boxes
