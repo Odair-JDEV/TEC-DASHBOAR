@@ -257,22 +257,42 @@ const DEFAULT_SERVICE_TYPES = [
 ];
 
 // Seed Service Types if empty
-// Seed Service Types (Force Reset to ensure correct list)
+// Seed Service Types (Smart Sync)
 async function seedServiceTypes() {
     try {
-        console.log('Resetting service types...');
-        // Delete all existing to ensure we match the requested list exactly
-        await db.delete(schema.serviceTypes);
+        const existing = await db.query.serviceTypes.findMany();
+        const existingNames = new Set(existing.map(t => t.name));
+        const targetNames = new Set(DEFAULT_SERVICE_TYPES);
 
-        for (const type of DEFAULT_SERVICE_TYPES) {
-            await db.insert(schema.serviceTypes).values({
-                id: Math.random().toString(36).substring(2, 9),
-                name: type
-            });
+        // 1. Add missing types
+        const toAdd = DEFAULT_SERVICE_TYPES.filter(name => !existingNames.has(name));
+        if (toAdd.length > 0) {
+            console.log(`Adding ${toAdd.length} new service types...`);
+            for (const name of toAdd) {
+                await db.insert(schema.serviceTypes).values({
+                    id: Math.random().toString(36).substring(2, 9),
+                    name: name
+                });
+            }
         }
-        console.log('Service types reset and seeded.');
+
+        // 2. Remove extra types (that are not in the new default list)
+        const toRemove = existing.filter(t => !targetNames.has(t.name));
+        if (toRemove.length > 0) {
+            console.log(`Removing ${toRemove.length} obsolete service types...`);
+            for (const type of toRemove) {
+                await db.delete(schema.serviceTypes).where(eq(schema.serviceTypes.id, type.id));
+            }
+        }
+
+        if (toAdd.length === 0 && toRemove.length === 0) {
+            console.log('Service types are already in sync.');
+        } else {
+            console.log('Service types synchronization complete.');
+        }
+
     } catch (error) {
-        console.error('Failed to seed service types:', error);
+        console.error('Failed to sync service types:', error);
     }
 }
 // Run seeding slightly after startup to ensure DB connection
