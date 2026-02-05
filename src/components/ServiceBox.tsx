@@ -7,6 +7,17 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { TeamSelector } from './TeamSelector';
 import { ServiceBadge } from './ServiceBadge';
 import { Box, Plus, X, Tag, GripVertical, Pencil } from 'lucide-react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface ServiceBoxProps {
   box: ServiceBoxType;
@@ -165,14 +176,34 @@ export const ServiceBoxCard = ({ box, scheduleId }: ServiceBoxProps) => {
               autoFocus
             />
           )}
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => removeBox(scheduleId, box.id)}
-            className="h-8 w-8 text-muted-foreground hover:text-destructive"
-          >
-            <X className="w-4 h-4" />
-          </Button>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 text-muted-foreground hover:text-destructive"
+              >
+                <X className="w-4 h-4" />
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Excluir Caixa?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Tem certeza que deseja excluir a Caixa {box.number}? Todos os serviços vinculados a ela também serão removidos.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={() => removeBox(scheduleId, box.id)}
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                >
+                  Excluir
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
       </div>
 
