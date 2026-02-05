@@ -8,7 +8,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { TeamSelector } from './TeamSelector';
 import { ServiceBadge } from './ServiceBadge';
-import { Box, Plus, X, GripVertical, Pencil, CheckCircle2, Ban, Clock, AlertTriangle } from 'lucide-react';
+import { Box, Plus, X, GripVertical, Pencil, CheckCircle2, Ban, Clock, AlertTriangle, MapPin } from 'lucide-react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -43,6 +43,7 @@ export const ServiceBoxCard = ({ box, scheduleId }: ServiceBoxProps) => {
 
   // Alert State
   const [alertText, setAlertText] = useState(box.alert || '');
+  const [cityText, setCityText] = useState(box.city || '');
 
   const handleSaveNumber = () => {
     const newNumber = parseInt(numberInputValue);
@@ -52,6 +53,10 @@ export const ServiceBoxCard = ({ box, scheduleId }: ServiceBoxProps) => {
       setNumberInputValue(String(box.number));
     }
     setIsEditingNumber(false);
+  };
+
+  const handleSaveCity = () => {
+    updateBoxCity(scheduleId, box.id, cityText);
   };
 
   const handleAddService = () => {
