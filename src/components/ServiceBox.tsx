@@ -108,7 +108,7 @@ export const ServiceBoxCard = ({ box, scheduleId }: ServiceBoxProps) => {
       className={cn(
         "glass-card p-4 animate-fade-in transition-all",
         isDragOver ? 'ring-2 ring-primary bg-primary/10' : '',
-        box.alert ? 'ring-2 ring-yellow-500/50 bg-yellow-500/5 shadow-[0_0_15px_rgba(234,179,8,0.2)] animate-pulse' : ''
+        box.alert ? 'ring-2 ring-yellow-500/50 bg-yellow-500/5 stroke-yellow-500 animate-pulse-border' : ''
       )}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}

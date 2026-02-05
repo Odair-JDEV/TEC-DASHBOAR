@@ -3,7 +3,7 @@ import { useAppStore } from '@/lib/store';
 import { ServiceBox as ServiceBoxType, ServiceStatus } from '@/types';
 import { ServiceBadge } from './ServiceBadge';
 import { ServiceStatusBadge } from './ServiceStatusBadge';
-import { Box, Check, X, Clock, Pencil, GripVertical } from 'lucide-react';
+import { Box, Check, X, Clock, Pencil, GripVertical, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -13,6 +13,8 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { format } from 'date-fns';
+import { cn } from '@/lib/utils';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
 interface ViewModeBoxProps {
   box: ServiceBoxType;
@@ -105,8 +107,11 @@ export const ViewModeBox = ({ box, scheduleId }: ViewModeBoxProps) => {
 
   return (
     <div
-      className={`glass-card p-4 animate-fade-in transition-all ${isDragOver ? 'ring-2 ring-primary bg-primary/10' : ''
-        }`}
+      className={cn(
+        "glass-card p-4 animate-fade-in transition-all",
+        isDragOver ? 'ring-2 ring-primary bg-primary/10' : '',
+        box.alert ? 'ring-2 ring-yellow-500/50 bg-yellow-500/5 stroke-yellow-500 animate-pulse-border' : ''
+      )}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
@@ -115,10 +120,31 @@ export const ViewModeBox = ({ box, scheduleId }: ViewModeBoxProps) => {
         <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-accent/20">
           <Box className="w-4 h-4 text-accent" />
         </div>
-        <div>
-          <h3 className="font-bold text-foreground">
-            {teamName ? `${teamName}: ` : ''}(CAIXA {String(box.number).padStart(2, '0')})
-          </h3>
+        <div className="flex-1">
+          <div className="flex items-center justify-between">
+            <h3 className="font-bold text-foreground">
+              {teamName ? `${teamName}: ` : ''}(CAIXA {String(box.number).padStart(2, '0')})
+            </h3>
+            {box.alert && (
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-6 w-6 text-yellow-500 hover:text-yellow-600 animate-pulse"
+                  >
+                    <AlertTriangle className="w-4 h-4" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-2 text-sm bg-yellow-950 border-yellow-500/30 text-yellow-100">
+                  <div className="flex items-center gap-2">
+                    <AlertTriangle className="w-4 h-4 text-yellow-500" />
+                    <span>{box.alert}</span>
+                  </div>
+                </PopoverContent>
+              </Popover>
+            )}
+          </div>
           <div className="flex items-center gap-2">
             {editingDeparture ? (
               <div className="flex items-center gap-1">
