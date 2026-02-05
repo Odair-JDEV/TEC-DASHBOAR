@@ -40,6 +40,7 @@ interface AppState {
   updateBoxDepartureTime: (scheduleId: string, boxId: string, departureTime: string) => void;
   updateBoxReturnTime: (scheduleId: string, boxId: string, returnTime: string) => void;
   updateBoxNumber: (scheduleId: string, boxId: string, newNumber: number) => void;
+  updateBoxAlert: (scheduleId: string, boxId: string, alert: string) => void;
 
   // Services
 

@@ -21,6 +21,7 @@ export interface ServiceBox {
   status?: string; // ex: "TOKYO"
   departureTime?: string; // HH:mm format
   returnTime?: string; // HH:mm format
+  alert?: string;
   services: Service[];
 }
 

@@ -3,10 +3,12 @@ import { useAppStore } from '@/lib/store';
 import { ServiceBox as ServiceBoxType, ServiceType } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { TeamSelector } from './TeamSelector';
 import { ServiceBadge } from './ServiceBadge';
-import { Box, Plus, X, GripVertical, Pencil, CheckCircle2, Ban, Clock } from 'lucide-react';
+import { Box, Plus, X, GripVertical, Pencil, CheckCircle2, Ban, Clock, AlertTriangle } from 'lucide-react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -18,6 +20,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { cn } from '@/lib/utils';
 
 interface ServiceBoxProps {
   box: ServiceBoxType;
@@ -27,7 +30,7 @@ interface ServiceBoxProps {
 export const ServiceBoxCard = ({ box, scheduleId }: ServiceBoxProps) => {
   const [osNumber, setOsNumber] = useState('');
   // Use first category as default if available, or empty string
-  const { serviceTypes, addService, removeService, updateBoxStatus, removeBox, moveService, updateServiceType, updateBoxNumber } = useAppStore();
+  const { serviceTypes, addService, removeService, updateBoxStatus, removeBox, moveService, updateServiceType, updateBoxNumber, updateBoxAlert } = useAppStore();
   const [serviceType, setServiceType] = useState<ServiceType>(serviceTypes[0]?.name || '');
 
   const [status, setStatus] = useState(box.status || '');
@@ -37,6 +40,9 @@ export const ServiceBoxCard = ({ box, scheduleId }: ServiceBoxProps) => {
 
   const [isEditingNumber, setIsEditingNumber] = useState(false);
   const [numberInputValue, setNumberInputValue] = useState(String(box.number));
+
+  // Alert State
+  const [alertText, setAlertText] = useState(box.alert || '');
 
   const handleSaveNumber = () => {
     const newNumber = parseInt(numberInputValue);
@@ -61,6 +67,10 @@ export const ServiceBoxCard = ({ box, scheduleId }: ServiceBoxProps) => {
   const handleStatusBlur = () => {
     updateBoxStatus(scheduleId, box.id, status.toUpperCase());
     if (!status) setShowStatusInput(false);
+  };
+
+  const handleSaveAlert = () => {
+    updateBoxAlert(scheduleId, box.id, alertText);
   };
 
   const handleDragStart = (e: React.DragEvent, serviceId: string) => {
@@ -95,8 +105,11 @@ export const ServiceBoxCard = ({ box, scheduleId }: ServiceBoxProps) => {
 
   return (
     <div
-      className={`glass-card p-4 animate-fade-in transition-all ${isDragOver ? 'ring-2 ring-primary bg-primary/10' : ''
-        }`}
+      className={cn(
+        "glass-card p-4 animate-fade-in transition-all",
+        isDragOver ? 'ring-2 ring-primary bg-primary/10' : '',
+        box.alert ? 'ring-2 ring-yellow-500/50 bg-yellow-500/5 shadow-[0_0_15px_rgba(234,179,8,0.2)] animate-pulse' : ''
+      )}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
@@ -141,7 +154,39 @@ export const ServiceBoxCard = ({ box, scheduleId }: ServiceBoxProps) => {
             )}
           </div>
         </div>
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-2">
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className={cn(
+                  "h-8 w-8 hover:text-yellow-500 hover:bg-yellow-500/10",
+                  box.alert ? "text-yellow-500 animate-pulse" : "text-muted-foreground"
+                )}
+                title="Alerta da equipe"
+              >
+                <AlertTriangle className="w-4 h-4" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-64 p-3">
+              <div className="space-y-2">
+                <h4 className="font-medium text-sm flex items-center gap-2">
+                  <AlertTriangle className="w-4 h-4 text-yellow-500" />
+                  Alerta da Equipe
+                </h4>
+                <Textarea
+                  placeholder="Ex: Equipe sem ajudante..."
+                  value={alertText}
+                  onChange={(e) => setAlertText(e.target.value)}
+                  className="min-h-[80px]"
+                />
+                <Button size="sm" onClick={handleSaveAlert} className="w-full">
+                  Salvar Alerta
+                </Button>
+              </div>
+            </PopoverContent>
+          </Popover>
 
           <div className="flex items-center gap-1">
             <Button
@@ -206,6 +251,13 @@ export const ServiceBoxCard = ({ box, scheduleId }: ServiceBoxProps) => {
       <div className="mb-4">
         <TeamSelector scheduleId={scheduleId} boxId={box.id} currentTeam={box.team} />
       </div>
+
+      {box.alert && (
+        <div className="mb-4 p-2 bg-yellow-500/10 border border-yellow-500/20 rounded text-yellow-200 text-xs font-medium flex items-start gap-2">
+          <AlertTriangle className="w-3 h-3 mt-0.5 shrink-0" />
+          {box.alert}
+        </div>
+      )}
 
       <div className="flex gap-2 mb-4">
         <Input
