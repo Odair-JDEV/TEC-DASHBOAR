@@ -148,7 +148,7 @@ export const ServiceBoxCard = ({ box, scheduleId }: ServiceBoxProps) => {
               variant="ghost"
               size="icon"
               onClick={() => updateBoxStatus(scheduleId, box.id, box.status === 'CONCLUÍDO' ? '' : 'CONCLUÍDO')}
-              className={`h-8 w-8 hover:bg-green-500/10 hover:text-green-500 ${box.status === 'CONCLUÍDO' ? 'text-green-500 bg-green-500/10' : 'text-muted-foreground'}`}
+              className={`h-8 w-8 text-green-500 hover:bg-green-500/10 hover:text-green-600 ${box.status === 'CONCLUÍDO' ? 'bg-green-500/10 ring-1 ring-green-500/20' : 'opacity-70 hover:opacity-100'}`}
               title="Concluído"
             >
               <CheckCircle2 className="w-4 h-4" />
@@ -157,7 +157,7 @@ export const ServiceBoxCard = ({ box, scheduleId }: ServiceBoxProps) => {
               variant="ghost"
               size="icon"
               onClick={() => updateBoxStatus(scheduleId, box.id, box.status === 'CANCELADO' ? '' : 'CANCELADO')}
-              className={`h-8 w-8 hover:bg-red-500/10 hover:text-red-500 ${box.status === 'CANCELADO' ? 'text-red-500 bg-red-500/10' : 'text-muted-foreground'}`}
+              className={`h-8 w-8 text-red-500 hover:bg-red-500/10 hover:text-red-600 ${box.status === 'CANCELADO' ? 'bg-red-500/10 ring-1 ring-red-500/20' : 'opacity-70 hover:opacity-100'}`}
               title="Cancelado"
             >
               <Ban className="w-4 h-4" />
@@ -166,7 +166,7 @@ export const ServiceBoxCard = ({ box, scheduleId }: ServiceBoxProps) => {
               variant="ghost"
               size="icon"
               onClick={() => updateBoxStatus(scheduleId, box.id, box.status === 'REAGENDADO' ? '' : 'REAGENDADO')}
-              className={`h-8 w-8 hover:bg-orange-500/10 hover:text-orange-500 ${box.status === 'REAGENDADO' ? 'text-orange-500 bg-orange-500/10' : 'text-muted-foreground'}`}
+              className={`h-8 w-8 text-yellow-500 hover:bg-yellow-500/10 hover:text-yellow-600 ${box.status === 'REAGENDADO' ? 'bg-yellow-500/10 ring-1 ring-yellow-500/20' : 'opacity-70 hover:opacity-100'}`}
               title="Reagendado"
             >
               <Clock className="w-4 h-4" />
