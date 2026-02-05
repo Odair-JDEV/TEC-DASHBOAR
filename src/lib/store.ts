@@ -223,6 +223,19 @@ export const useAppStore = create<AppState>()(
       });
     },
 
+    updateScheduleShift: async (id, shift) => {
+      set((state) => {
+        const schedules = state.schedules.map((s) => (s.id === id ? { ...s, shift } : s));
+        const currentSchedule = schedules.find((s) => s.id === id) || state.currentSchedule;
+        return { schedules, currentSchedule };
+      });
+      fetch(`/api/schedules/${id}/shift`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ shift })
+      });
+    },
+
     addBox: async (scheduleId) => {
       let newBox: any;
       set((state) => {
