@@ -277,7 +277,32 @@ async function seedServiceTypes() {
     }
 }
 // Run seeding slightly after startup to ensure DB connection
+// Run seeding slightly after startup to ensure DB connection
 setTimeout(seedServiceTypes, 2000);
+
+const DEFAULT_TECHNICIANS = [
+    'WESLEY', 'YURI', 'DANIEL', 'EVERTON', 'PEDRO',
+    'SAMUEL', 'FELLIPE', 'BRUNO', 'MASTERSON', 'AILTON'
+];
+
+async function seedTechnicians() {
+    try {
+        const existing = await db.query.technicians.findMany();
+        if (existing.length === 0) {
+            console.log('Seeding technicians...');
+            for (const name of DEFAULT_TECHNICIANS) {
+                await db.insert(schema.technicians).values({
+                    id: Math.random().toString(36).substring(2, 9),
+                    name: name
+                });
+            }
+            console.log('Technicians seeded.');
+        }
+    } catch (error) {
+        console.error('Failed to seed technicians:', error);
+    }
+}
+setTimeout(seedTechnicians, 2500);
 
 app.get('/api/service-types', async (req, res) => {
     try {
