@@ -67,19 +67,32 @@ export const useAppStore = create<AppState>()(
     },
 
     // Initial Load
+    // Initial Load & Polling
     fetchState: async () => {
       try {
         const res = await fetch('/api/state');
         const data = await res.json();
-        set({
-          technicians: data.technicians || [],
-          schedules: data.schedules.map((s: any) => ({
-            ...s,
-            boxes: s.boxes.map((b: any) => ({
-              ...b,
-              services: b.services || [] // Ensure services array exists
-            }))
-          })) || []
+
+        const newSchedules = data.schedules.map((s: any) => ({
+          ...s,
+          boxes: s.boxes.map((b: any) => ({
+            ...b,
+            services: b.services || []
+          }))
+        })) || [];
+
+        set((state) => {
+          // If we have a current schedule, try to find its updated version
+          let updatedCurrentSchedule = state.currentSchedule;
+          if (state.currentSchedule) {
+            updatedCurrentSchedule = newSchedules.find((s: any) => s.id === state.currentSchedule?.id) || null;
+          }
+
+          return {
+            technicians: data.technicians || [],
+            schedules: newSchedules,
+            currentSchedule: updatedCurrentSchedule
+          };
         });
       } catch (err) {
         console.error('Failed to fetch state', err);

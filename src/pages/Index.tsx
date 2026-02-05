@@ -11,12 +11,20 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
 const Index = () => {
-  const { currentSchedule, mode } = useAppStore();
+  const { currentSchedule, mode, fetchState } = useAppStore();
   const [isSidebarOpen, setIsSidebarOpen] = useState(mode === 'edit');
 
   useEffect(() => {
     setIsSidebarOpen(mode === 'edit');
   }, [mode]);
+
+  useEffect(() => {
+    fetchState();
+    const interval = setInterval(() => {
+      fetchState();
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [fetchState]);
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
