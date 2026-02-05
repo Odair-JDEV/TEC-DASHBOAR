@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 // import { persist } from 'zustand/middleware';
-import { Technician, ServiceBox, Schedule, Service, Shift, Team, ServiceStatus, ServiceType } from '@/types';
+import { Technician, ServiceBox, Schedule, Service, Shift, Team, ServiceStatus, ServiceType, ServiceTypeCategory } from '@/types';
 
 type AppMode = 'edit' | 'view';
 
@@ -20,6 +20,11 @@ interface AppState {
   // Technicians
   addTechnician: (name: string) => void;
   removeTechnician: (id: string) => void;
+
+  // Service Types (Categories)
+  serviceTypes: ServiceTypeCategory[];
+  addServiceType: (name: string) => void;
+  removeServiceType: (id: string) => void;
 
   // Schedules
   createSchedule: (date: string, shift: Shift) => void;
@@ -51,6 +56,7 @@ export const useAppStore = create<AppState>()(
   (set, get) => ({
     technicians: [],
     schedules: [],
+    serviceTypes: [],
     currentSchedule: null,
     mode: 'view',
     dbStatus: 'checking',
@@ -67,7 +73,6 @@ export const useAppStore = create<AppState>()(
       }
     },
 
-    // Initial Load
     // Initial Load & Polling
     fetchState: async () => {
       try {
@@ -91,6 +96,7 @@ export const useAppStore = create<AppState>()(
 
           return {
             technicians: data.technicians || [],
+            serviceTypes: data.serviceTypes || state.serviceTypes,
             schedules: newSchedules,
             currentSchedule: updatedCurrentSchedule
           };
@@ -115,6 +121,22 @@ export const useAppStore = create<AppState>()(
     removeTechnician: async (id) => {
       set((state) => ({ technicians: state.technicians.filter((t) => t.id !== id) }));
       fetch(`/api/technicians/${id}`, { method: 'DELETE' });
+    },
+
+    addServiceType: async (name) => {
+      const id = generateId();
+      const upperName = name.toUpperCase();
+      set((state) => ({ serviceTypes: [...state.serviceTypes, { id, name: upperName }] }));
+      fetch('/api/service-types', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, name: upperName })
+      });
+    },
+
+    removeServiceType: async (id) => {
+      set((state) => ({ serviceTypes: state.serviceTypes.filter((t) => t.id !== id) }));
+      fetch(`/api/service-types/${id}`, { method: 'DELETE' });
     },
 
     createSchedule: async (date, shift) => {

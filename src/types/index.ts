@@ -3,6 +3,11 @@ export interface Technician {
   name: string;
 }
 
+export interface ServiceTypeCategory {
+  id: string;
+  name: string;
+}
+
 export interface Team {
   id: string;
   members: Technician[];
@@ -29,22 +34,7 @@ export interface Service {
   completedAt?: string; // HH:mm format
 }
 
-export type ServiceType =
-  | 'LOSS'
-  | 'LINK LOSS'
-  | 'LENTIDÃO'
-  | 'ATIVAÇÃO'
-  | 'UPGRADE'
-  | 'T.ENDEREÇO'
-  | 'TROCA DE ENDEREÇO'
-  | 'T.EQUIPAMENTO'
-  | 'TROCA DE COMODO'
-  | 'SEM CONEXÃO'
-  | 'OFF'
-  | 'REALOCAR ONU'
-  | 'SUPORTE'
-  | 'UPGRADE + REPETIDOR'
-  | 'UPGRADE/T.ENDEREÇO';
+export type ServiceType = string;
 
 export type Shift = 'MANHÃ' | 'TARDE';
 

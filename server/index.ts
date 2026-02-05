@@ -44,6 +44,7 @@ app.get('/health', async (req, res) => {
 app.get('/api/state', async (req, res) => {
     try {
         const allTechnicians = await db.query.technicians.findMany();
+        const allServiceTypes = await db.query.serviceTypes.findMany();
         const allSchedules = await db.query.schedules.findMany({
             with: {
                 boxes: {
@@ -56,7 +57,7 @@ app.get('/api/state', async (req, res) => {
             orderBy: desc(schema.schedules.date) // Newest first
         });
 
-        res.json({ technicians: allTechnicians, schedules: allSchedules });
+        res.json({ technicians: allTechnicians, schedules: allSchedules, serviceTypes: allServiceTypes });
     } catch (error) {
         console.error('Error fetching state:', error);
         res.status(500).json({ error: 'Failed to fetch state' });
@@ -245,6 +246,59 @@ app.post('/api/services/move', async (req, res) => {
         await db.update(schema.services).set({ boxId: toBoxId }).where(eq(schema.services.id, serviceId));
         res.json({ success: true });
     } catch (error) { res.status(500).json({ error: 'Failed to move service' }); }
+});
+
+// --- Service Types (Dynamic Categories) ---
+
+const DEFAULT_SERVICE_TYPES = [
+    'LINK LOSS', 'LENTIDÃO', 'ATIVAÇÃO', 'UPGRADE', 'T.ENDEREÇO',
+    'T.EQUIPAMENTO', 'T.COMODO', 'SEM CONEXÃO', 'SUPORTE',
+    'UPGRADE + REPETIDOR', 'UPGRADE/T.ENDEREÇO', 'UPGRADE/T.COMODO'
+];
+
+// Seed Service Types if empty
+async function seedServiceTypes() {
+    try {
+        const existing = await db.query.serviceTypes.findMany();
+        if (existing.length === 0) {
+            console.log('Seeding service types...');
+            for (const type of DEFAULT_SERVICE_TYPES) {
+                await db.insert(schema.serviceTypes).values({
+                    id: Math.random().toString(36).substring(2, 9),
+                    name: type
+                });
+            }
+            console.log('Service types seeded.');
+        }
+    } catch (error) {
+        console.error('Failed to seed service types:', error);
+        // Table might not exist yet if migration didn't run, but Drizzle usually handles this if we push
+        // For this environment, we assume the table is created via push or manual setup.
+    }
+}
+// Run seeding slightly after startup to ensure DB connection
+setTimeout(seedServiceTypes, 2000);
+
+app.get('/api/service-types', async (req, res) => {
+    try {
+        const types = await db.query.serviceTypes.findMany();
+        res.json(types);
+    } catch (error) { res.status(500).json({ error: 'Failed to fetch service types' }); }
+});
+
+app.post('/api/service-types', async (req, res) => {
+    try {
+        const { id, name } = req.body;
+        await db.insert(schema.serviceTypes).values({ id, name });
+        res.json({ success: true });
+    } catch (error) { res.status(500).json({ error: 'Failed to add service type' }); }
+});
+
+app.delete('/api/service-types/:id', async (req, res) => {
+    try {
+        await db.delete(schema.serviceTypes).where(eq(schema.serviceTypes.id, req.params.id));
+        res.json({ success: true });
+    } catch (error) { res.status(500).json({ error: 'Failed to delete service type' }); }
 });
 
 

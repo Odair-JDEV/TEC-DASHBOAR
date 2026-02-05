@@ -37,6 +37,12 @@ export const services = pgTable('services', {
     completedAt: text('completed_at'),
 });
 
+// Service Types
+export const serviceTypes = pgTable('service_types', {
+    id: text('id').primaryKey(),
+    name: text('name').notNull(),
+});
+
 // Relations
 export const schedulesRelations = relations(schedules, ({ many }) => ({
     boxes: many(boxes),

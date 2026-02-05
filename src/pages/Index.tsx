@@ -4,6 +4,7 @@ import { ScheduleSelector } from '@/components/ScheduleSelector';
 import { ScheduleEditor } from '@/components/ScheduleEditor';
 import { ScheduleViewer } from '@/components/ScheduleViewer';
 import { PreviewModal } from '@/components/PreviewModal';
+import { ServiceTypeManager } from '@/components/ServiceTypeManager';
 import { useAppStore } from '@/lib/store';
 import { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
@@ -38,8 +39,17 @@ const Index = () => {
             isSidebarOpen ? "w-80 p-4 opacity-100" : "w-0 p-0 opacity-0 border-none overflow-hidden"
           )}
         >
+          import {ServiceTypeManager} from '@/components/ServiceTypeManager';
+
+          // ...
+
           <div className={cn("transition-all duration-300", isSidebarOpen ? "opacity-100 delay-150" : "opacity-0 invisible")}>
-            {mode === 'edit' && <TechnicianManager />}
+            {mode === 'edit' && (
+              <div className="space-y-4">
+                <TechnicianManager />
+                <ServiceTypeManager />
+              </div>
+            )}
             <ScheduleSelector />
             {currentSchedule && mode === 'edit' && <PreviewModal />}
           </div>
