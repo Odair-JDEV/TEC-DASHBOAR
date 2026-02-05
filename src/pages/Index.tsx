@@ -39,9 +39,7 @@ const Index = () => {
             isSidebarOpen ? "w-80 p-4 opacity-100" : "w-0 p-0 opacity-0 border-none overflow-hidden"
           )}
         >
-          import {ServiceTypeManager} from '@/components/ServiceTypeManager';
 
-          // ...
 
           <div className={cn("transition-all duration-300", isSidebarOpen ? "opacity-100 delay-150" : "opacity-0 invisible")}>
             {mode === 'edit' && (
