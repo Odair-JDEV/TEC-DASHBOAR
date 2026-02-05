@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { TeamSelector } from './TeamSelector';
 import { ServiceBadge } from './ServiceBadge';
-import { Box, Plus, X, Tag, GripVertical } from 'lucide-react';
+import { Box, Plus, X, Tag, GripVertical, Pencil } from 'lucide-react';
 
 interface ServiceBoxProps {
   box: ServiceBoxType;
@@ -36,7 +36,20 @@ export const ServiceBoxCard = ({ box, scheduleId }: ServiceBoxProps) => {
   const [isDragOver, setIsDragOver] = useState(false);
   const [editingServiceId, setEditingServiceId] = useState<string | null>(null);
 
-  const { addService, removeService, updateBoxStatus, removeBox, moveService, updateServiceType } = useAppStore();
+  const [isEditingNumber, setIsEditingNumber] = useState(false);
+  const [numberInputValue, setNumberInputValue] = useState(String(box.number));
+
+  const { addService, removeService, updateBoxStatus, removeBox, moveService, updateServiceType, updateBoxNumber } = useAppStore();
+
+  const handleSaveNumber = () => {
+    const newNumber = parseInt(numberInputValue);
+    if (!isNaN(newNumber) && newNumber > 0) {
+      updateBoxNumber(scheduleId, box.id, newNumber);
+    } else {
+      setNumberInputValue(String(box.number));
+    }
+    setIsEditingNumber(false);
+  };
 
   const handleAddService = () => {
     if (osNumber.trim()) {
@@ -96,9 +109,35 @@ export const ServiceBoxCard = ({ box, scheduleId }: ServiceBoxProps) => {
             <Box className="w-4 h-4 text-accent" />
           </div>
           <div>
-            <h3 className="font-bold text-foreground">
-              CAIXA {String(box.number).padStart(2, '0')}
-            </h3>
+            {isEditingNumber ? (
+              <div className="flex items-center gap-1">
+                <span className="font-bold text-foreground">CAIXA</span>
+                <Input
+                  type="number"
+                  value={numberInputValue}
+                  onChange={(e) => setNumberInputValue(e.target.value)}
+                  onBlur={handleSaveNumber}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') handleSaveNumber();
+                    if (e.key === 'Escape') {
+                      setIsEditingNumber(false);
+                      setNumberInputValue(String(box.number));
+                    }
+                  }}
+                  className="w-16 h-8 text-center font-bold"
+                  autoFocus
+                />
+              </div>
+            ) : (
+              <h3
+                className="font-bold text-foreground cursor-pointer hover:text-primary transition-colors flex items-center gap-2 group"
+                onClick={() => setIsEditingNumber(true)}
+                title="Clique para editar o número"
+              >
+                CAIXA {String(box.number).padStart(2, '0')}
+                <Pencil className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground" />
+              </h3>
+            )}
             {box.status && (
               <span className="text-xs text-accent font-semibold">{box.status}</span>
             )}

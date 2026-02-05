@@ -34,6 +34,7 @@ interface AppState {
   updateBoxStatus: (scheduleId: string, boxId: string, status: string) => void;
   updateBoxDepartureTime: (scheduleId: string, boxId: string, departureTime: string) => void;
   updateBoxReturnTime: (scheduleId: string, boxId: string, returnTime: string) => void;
+  updateBoxNumber: (scheduleId: string, boxId: string, newNumber: number) => void;
 
   // Services
 
@@ -302,6 +303,35 @@ export const useAppStore = create<AppState>()(
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ returnTime })
+        });
+
+        return { schedules, currentSchedule };
+      });
+    },
+
+    updateBoxNumber: async (scheduleId, boxId, newNumber) => {
+      set((state) => {
+        const schedules = state.schedules.map((s) => {
+          if (s.id === scheduleId) {
+            const updatedBoxes = s.boxes.map((b) =>
+              b.id === boxId ? { ...b, number: newNumber } : b
+            );
+            // Sort boxes by number ascending
+            updatedBoxes.sort((a, b) => a.number - b.number);
+
+            return {
+              ...s,
+              boxes: updatedBoxes,
+            };
+          }
+          return s;
+        });
+        const currentSchedule = schedules.find((s) => s.id === scheduleId) || state.currentSchedule;
+
+        fetch(`/api/boxes/${boxId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ number: newNumber }),
         });
 
         return { schedules, currentSchedule };
