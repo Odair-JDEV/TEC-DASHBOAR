@@ -155,188 +155,160 @@ export const ServiceBoxCard = ({ box, scheduleId }: ServiceBoxProps) => {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className={cn(
-                  "h-8 w-8 hover:text-yellow-500 hover:bg-yellow-500/10",
-                  box.alert ? "text-yellow-500 animate-pulse" : "text-muted-foreground"
-                )}
-                title="Alerta da equipe"
-              >
-                <AlertTriangle className="w-4 h-4" />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-64 p-3">
-              <div className="space-y-2">
-                <h4 className="font-medium text-sm flex items-center gap-2">
-                  <AlertTriangle className="w-4 h-4 text-yellow-500" />
-                  Alerta da Equipe
-                </h4>
-                <Textarea
-                  placeholder="Ex: Equipe sem ajudante..."
-                  value={alertText}
-                  onChange={(e) => setAlertText(e.target.value)}
-                  className="min-h-[80px]"
-                />
-                <Button size="sm" onClick={handleSaveAlert} className="w-full">
-                  Salvar Alerta
-                </Button>
-              </div>
-            </PopoverContent>
-          </Popover>
-
-          <div className="flex items-center gap-1">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => updateBoxStatus(scheduleId, box.id, box.status === 'CONCLUÍDO' ? '' : 'CONCLUÍDO')}
-              className={`h-8 w-8 text-green-500 hover:bg-green-500/10 hover:text-green-600 ${box.status === 'CONCLUÍDO' ? 'bg-green-500/10 ring-1 ring-green-500/20' : 'opacity-70 hover:opacity-100'}`}
-              title="Concluído"
-            >
-              <CheckCircle2 className="w-4 h-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => updateBoxStatus(scheduleId, box.id, box.status === 'CANCELADO' ? '' : 'CANCELADO')}
-              className={`h-8 w-8 text-red-500 hover:bg-red-500/10 hover:text-red-600 ${box.status === 'CANCELADO' ? 'bg-red-500/10 ring-1 ring-red-500/20' : 'opacity-70 hover:opacity-100'}`}
-              title="Cancelado"
-            >
-              <Ban className="w-4 h-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => updateBoxStatus(scheduleId, box.id, box.status === 'REAGENDADO' ? '' : 'REAGENDADO')}
-              className={`h-8 w-8 text-yellow-500 hover:bg-yellow-500/10 hover:text-yellow-600 ${box.status === 'REAGENDADO' ? 'bg-yellow-500/10 ring-1 ring-yellow-500/20' : 'opacity-70 hover:opacity-100'}`}
-              title="Reagendado"
-            >
-              <Clock className="w-4 h-4" />
-            </Button>
-          </div>
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8 text-muted-foreground hover:text-destructive"
-              >
-                <X className="w-4 h-4" />
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Excluir Caixa?</AlertDialogTitle>
-                <AlertDialogDescription>
-                  Tem certeza que deseja excluir a Caixa {box.number}? Todos os serviços vinculados a ela também serão removidos.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                <AlertDialogAction
-                  onClick={() => removeBox(scheduleId, box.id)}
-                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+          <div className="flex items-center gap-2">
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className={cn(
+                    "h-8 w-8 hover:text-yellow-500 hover:bg-yellow-500/10",
+                    box.alert ? "text-yellow-500 animate-pulse" : "text-muted-foreground"
+                  )}
+                  title="Alerta da equipe"
                 >
-                  Excluir
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-        </div>
-      </div>
+                  <AlertTriangle className="w-4 h-4" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-64 p-3">
+                <div className="space-y-2">
+                  <h4 className="font-medium text-sm flex items-center gap-2">
+                    <AlertTriangle className="w-4 h-4 text-yellow-500" />
+                    Alerta da Equipe
+                  </h4>
+                  <Textarea
+                    placeholder="Ex: Equipe sem ajudante..."
+                    value={alertText}
+                    onChange={(e) => setAlertText(e.target.value)}
+                    className="min-h-[80px]"
+                  />
+                  <Button size="sm" onClick={handleSaveAlert} className="w-full">
+                    Salvar Alerta
+                  </Button>
+                </div>
+              </PopoverContent>
+            </Popover>
 
-      <div className="mb-4">
-        <TeamSelector scheduleId={scheduleId} boxId={box.id} currentTeam={box.team} />
-      </div>
-
-      {box.alert && (
-        <div className="mb-4 p-2 bg-yellow-500/10 border border-yellow-500/20 rounded text-yellow-200 text-xs font-medium flex items-start gap-2">
-          <AlertTriangle className="w-3 h-3 mt-0.5 shrink-0" />
-          {box.alert}
-        </div>
-      )}
-
-      <div className="flex gap-2 mb-4">
-        <Input
-          placeholder="Nº OS..."
-          value={osNumber}
-          onChange={(e) => setOsNumber(e.target.value)}
-          onKeyPress={(e) => e.key === 'Enter' && handleAddService()}
-          className="bg-secondary/50 border-border/50 font-mono"
-        />
-        <Select value={serviceType} onValueChange={(v) => setServiceType(v as ServiceType)}>
-          <SelectTrigger className="w-40 bg-secondary/50 border-border/50">
-            <SelectValue placeholder="Tipo..." />
-          </SelectTrigger>
-          <SelectContent className="max-h-60">
-            {serviceTypes.map((type) => (
-              <SelectItem key={type.id} value={type.name}>
-                {type.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <Button onClick={handleAddService} size="icon" className="shrink-0">
-          <Plus className="w-4 h-4" />
-        </Button>
-      </div>
-
-      <div className="space-y-2">
-        {box.services.length === 0 ? (
-          <p className="text-sm text-muted-foreground text-center py-3 bg-secondary/20 rounded">
-            VAZIA
-          </p>
-        ) : (
-          box.services.map((service) => (
-            <div
-              key={service.id}
-              draggable
-              onDragStart={(e) => handleDragStart(e, service.id)}
-              className="flex items-center justify-between p-2 bg-secondary/30 rounded group hover:bg-secondary/50 transition-colors cursor-move"
-            >
-              <div className="flex items-center gap-3">
-                <GripVertical className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
-                <span className="font-mono text-sm font-medium text-foreground">
-                  {service.osNumber}
-                </span>
-                {editingServiceId === service.id ? (
-                  <Select
-                    defaultValue={service.type}
-                    onValueChange={(value) => {
-                      updateServiceType(scheduleId, box.id, service.id, value);
-                      setEditingServiceId(null);
-                    }}
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                >
+                  <X className="w-4 h-4" />
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Excluir Caixa?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Tem certeza que deseja excluir a Caixa {box.number}? Todos os serviços vinculados a ela também serão removidos.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={() => removeBox(scheduleId, box.id)}
+                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                   >
-                    <SelectTrigger className="h-6 w-32 text-xs bg-secondary/50 border-border/50">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {serviceTypes.map((type) => (
-                        <SelectItem key={type.id} value={type.name}>
-                          {type.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                ) : (
-                  <div onClick={() => setEditingServiceId(service.id)} className="cursor-pointer hover:opacity-80 transition-opacity" title="Clique para alterar o tipo">
-                    <ServiceBadge type={service.type} />
-                  </div>
-                )}
-              </div>
-              <button
-                onClick={() => removeService(scheduleId, box.id, service.id)}
-                className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive transition-all"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-          ))
+                    Excluir
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
+        </div>
+
+        <div className="mb-4">
+          <TeamSelector scheduleId={scheduleId} boxId={box.id} currentTeam={box.team} />
+        </div>
+
+        {box.alert && (
+          <div className="mb-4 p-2 bg-yellow-500/10 border border-yellow-500/20 rounded text-yellow-200 text-xs font-medium flex items-start gap-2">
+            <AlertTriangle className="w-3 h-3 mt-0.5 shrink-0" />
+            {box.alert}
+          </div>
         )}
+
+        <div className="flex gap-2 mb-4">
+          <Input
+            placeholder="Nº OS..."
+            value={osNumber}
+            onChange={(e) => setOsNumber(e.target.value)}
+            onKeyPress={(e) => e.key === 'Enter' && handleAddService()}
+            className="bg-secondary/50 border-border/50 font-mono"
+          />
+          <Select value={serviceType} onValueChange={(v) => setServiceType(v as ServiceType)}>
+            <SelectTrigger className="w-40 bg-secondary/50 border-border/50">
+              <SelectValue placeholder="Tipo..." />
+            </SelectTrigger>
+            <SelectContent className="max-h-60">
+              {serviceTypes.map((type) => (
+                <SelectItem key={type.id} value={type.name}>
+                  {type.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Button onClick={handleAddService} size="icon" className="shrink-0">
+            <Plus className="w-4 h-4" />
+          </Button>
+        </div>
+
+        <div className="space-y-2">
+          {box.services.length === 0 ? (
+            <p className="text-sm text-muted-foreground text-center py-3 bg-secondary/20 rounded">
+              VAZIA
+            </p>
+          ) : (
+            box.services.map((service) => (
+              <div
+                key={service.id}
+                draggable
+                onDragStart={(e) => handleDragStart(e, service.id)}
+                className="flex items-center justify-between p-2 bg-secondary/30 rounded group hover:bg-secondary/50 transition-colors cursor-move"
+              >
+                <div className="flex items-center gap-3">
+                  <GripVertical className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <span className="font-mono text-sm font-medium text-foreground">
+                    {service.osNumber}
+                  </span>
+                  {editingServiceId === service.id ? (
+                    <Select
+                      defaultValue={service.type}
+                      onValueChange={(value) => {
+                        updateServiceType(scheduleId, box.id, service.id, value);
+                        setEditingServiceId(null);
+                      }}
+                    >
+                      <SelectTrigger className="h-6 w-32 text-xs bg-secondary/50 border-border/50">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {serviceTypes.map((type) => (
+                          <SelectItem key={type.id} value={type.name}>
+                            {type.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <div onClick={() => setEditingServiceId(service.id)} className="cursor-pointer hover:opacity-80 transition-opacity" title="Clique para alterar o tipo">
+                      <ServiceBadge type={service.type} />
+                    </div>
+                  )}
+                </div>
+                <button
+                  onClick={() => removeService(scheduleId, box.id, service.id)}
+                  className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive transition-all"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            ))
+          )}
+        </div>
       </div>
-    </div>
-  );
+      );
 };
