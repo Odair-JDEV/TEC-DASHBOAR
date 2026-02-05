@@ -30,7 +30,7 @@ const statusConfig: Record<ServiceStatus, { label: string; className: string; ic
 };
 
 export const ServiceStatusBadge = ({ status = 'pendente', completedAt }: ServiceStatusBadgeProps) => {
-  const config = statusConfig[status];
+  const config = statusConfig[status] || statusConfig['pendente'];
 
   return (
     <div className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium border ${config.className}`}>
