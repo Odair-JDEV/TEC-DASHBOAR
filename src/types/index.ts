@@ -22,6 +22,7 @@ export interface ServiceBox {
   departureTime?: string; // HH:mm format
   returnTime?: string; // HH:mm format
   alert?: string;
+  city?: string;
   services: Service[];
 }
 

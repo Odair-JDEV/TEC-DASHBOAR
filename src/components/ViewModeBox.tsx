@@ -3,7 +3,7 @@ import { useAppStore } from '@/lib/store';
 import { ServiceBox as ServiceBoxType, ServiceStatus } from '@/types';
 import { ServiceBadge } from './ServiceBadge';
 import { ServiceStatusBadge } from './ServiceStatusBadge';
-import { Box, Check, X, Clock, Pencil, GripVertical, AlertTriangle } from 'lucide-react';
+import { Box, Check, X, Clock, Pencil, GripVertical, AlertTriangle, MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -143,6 +143,12 @@ export const ViewModeBox = ({ box, scheduleId }: ViewModeBoxProps) => {
                   </div>
                 </PopoverContent>
               </Popover>
+            )}
+            {box.city && (
+              <div className="flex items-center gap-1 px-2 py-0.5 rounded bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-bold uppercase">
+                <MapPin className="w-3 h-3" />
+                {box.city}
+              </div>
             )}
           </div>
           <div className="flex items-center gap-2">

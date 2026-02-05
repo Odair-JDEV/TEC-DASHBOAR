@@ -26,6 +26,7 @@ export const boxes = pgTable('boxes', {
     departureTime: text('departure_time'),
     returnTime: text('return_time'),
     alert: text('alert'),
+    city: text('city'),
 });
 
 // Services

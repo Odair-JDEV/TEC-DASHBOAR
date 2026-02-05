@@ -30,7 +30,7 @@ interface ServiceBoxProps {
 export const ServiceBoxCard = ({ box, scheduleId }: ServiceBoxProps) => {
   const [osNumber, setOsNumber] = useState('');
   // Use first category as default if available, or empty string
-  const { serviceTypes, addService, removeService, updateBoxStatus, removeBox, moveService, updateServiceType, updateBoxNumber, updateBoxAlert } = useAppStore();
+  const { serviceTypes, addService, removeService, updateBoxStatus, removeBox, moveService, updateServiceType, updateBoxNumber, updateBoxAlert, updateBoxCity } = useAppStore();
   const [serviceType, setServiceType] = useState<ServiceType>(serviceTypes[0]?.name || '');
 
   const [status, setStatus] = useState(box.status || '');
@@ -183,6 +183,38 @@ export const ServiceBoxCard = ({ box, scheduleId }: ServiceBoxProps) => {
                 />
                 <Button size="sm" onClick={handleSaveAlert} className="w-full">
                   Salvar Alerta
+                </Button>
+              </div>
+            </PopoverContent>
+          </Popover>
+
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className={cn(
+                  "h-8 w-8 hover:text-blue-500 hover:bg-blue-500/10",
+                  box.city ? "text-blue-500" : "text-muted-foreground"
+                )}
+                title="Cidade / Local"
+              >
+                <MapPin className="w-4 h-4" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-64 p-3">
+              <div className="space-y-2">
+                <h4 className="font-medium text-sm flex items-center gap-2">
+                  <MapPin className="w-4 h-4 text-blue-500" />
+                  Cidade / Destino
+                </h4>
+                <Input
+                  placeholder="Ex: São Paulo"
+                  value={cityText}
+                  onChange={(e) => setCityText(e.target.value)}
+                />
+                <Button size="sm" onClick={handleSaveCity} className="w-full">
+                  Salvar Cidade
                 </Button>
               </div>
             </PopoverContent>
