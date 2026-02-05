@@ -9,6 +9,13 @@ import { useAppStore } from '@/lib/store';
 import { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import { Users, Tags, CalendarPlus } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const Index = () => {
@@ -42,13 +49,47 @@ const Index = () => {
 
 
           <div className={cn("transition-all duration-300", isSidebarOpen ? "opacity-100 delay-150" : "opacity-0 invisible")}>
-            {mode === 'edit' && (
-              <div className="space-y-4">
-                <TechnicianManager />
-                <ServiceTypeManager />
-              </div>
-            )}
-            <ScheduleSelector />
+            <Accordion type="single" collapsible defaultValue="agendas" className="w-full space-y-2">
+              <AccordionItem value="agendas" className="border-none">
+                <AccordionTrigger className="hover:no-underline py-2 px-1">
+                  <span className="flex items-center gap-2 text-sm font-semibold">
+                    <CalendarPlus className="w-4 h-4 text-primary" />
+                    Agendas
+                  </span>
+                </AccordionTrigger>
+                <AccordionContent className="p-1">
+                  <ScheduleSelector />
+                </AccordionContent>
+              </AccordionItem>
+
+              {mode === 'edit' && (
+                <>
+                  <AccordionItem value="categories" className="border-none">
+                    <AccordionTrigger className="hover:no-underline py-2 px-1">
+                      <span className="flex items-center gap-2 text-sm font-semibold">
+                        <Tags className="w-4 h-4 text-primary" />
+                        Categorias O.S
+                      </span>
+                    </AccordionTrigger>
+                    <AccordionContent className="p-1">
+                      <ServiceTypeManager />
+                    </AccordionContent>
+                  </AccordionItem>
+
+                  <AccordionItem value="technicians" className="border-none">
+                    <AccordionTrigger className="hover:no-underline py-2 px-1">
+                      <span className="flex items-center gap-2 text-sm font-semibold">
+                        <Users className="w-4 h-4 text-primary" />
+                        Técnicos
+                      </span>
+                    </AccordionTrigger>
+                    <AccordionContent className="p-1">
+                      <TechnicianManager />
+                    </AccordionContent>
+                  </AccordionItem>
+                </>
+              )}
+            </Accordion>
             {currentSchedule && mode === 'edit' && <PreviewModal />}
           </div>
         </aside>
