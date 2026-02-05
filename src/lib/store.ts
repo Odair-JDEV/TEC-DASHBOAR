@@ -518,5 +518,28 @@ export const useAppStore = create<AppState>()(
         return { schedules, currentSchedule };
       });
     },
+
+    updateBoxAlert: async (scheduleId, boxId, alert) => {
+      set((state) => {
+        const schedules = state.schedules.map((s) => {
+          if (s.id === scheduleId) {
+            return {
+              ...s,
+              boxes: s.boxes.map((b) => (b.id === boxId ? { ...b, alert } : b)),
+            };
+          }
+          return s;
+        });
+        const currentSchedule = schedules.find((s) => s.id === scheduleId) || state.currentSchedule;
+
+        fetch(`/api/boxes/${boxId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ alert })
+        });
+
+        return { schedules, currentSchedule };
+      });
+    },
   })
 );
