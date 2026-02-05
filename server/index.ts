@@ -94,7 +94,7 @@ app.post('/api/schedules', async (req, res) => {
 
         // AUTO-CLEANUP: Check count before insert
         const countResult = await db.execute(sql`SELECT count(*) FROM ${schema.schedules}`);
-        const count = parseInt(countResult.rows[0].count);
+        const count = parseInt(String(countResult.rows[0].count));
 
         if (count >= MAX_SCHEDULES) {
             console.log(`Limit reached (${count}).Deleting oldest schedule...`);
@@ -257,23 +257,22 @@ const DEFAULT_SERVICE_TYPES = [
 ];
 
 // Seed Service Types if empty
+// Seed Service Types (Force Reset to ensure correct list)
 async function seedServiceTypes() {
     try {
-        const existing = await db.query.serviceTypes.findMany();
-        if (existing.length === 0) {
-            console.log('Seeding service types...');
-            for (const type of DEFAULT_SERVICE_TYPES) {
-                await db.insert(schema.serviceTypes).values({
-                    id: Math.random().toString(36).substring(2, 9),
-                    name: type
-                });
-            }
-            console.log('Service types seeded.');
+        console.log('Resetting service types...');
+        // Delete all existing to ensure we match the requested list exactly
+        await db.delete(schema.serviceTypes);
+
+        for (const type of DEFAULT_SERVICE_TYPES) {
+            await db.insert(schema.serviceTypes).values({
+                id: Math.random().toString(36).substring(2, 9),
+                name: type
+            });
         }
+        console.log('Service types reset and seeded.');
     } catch (error) {
         console.error('Failed to seed service types:', error);
-        // Table might not exist yet if migration didn't run, but Drizzle usually handles this if we push
-        // For this environment, we assume the table is created via push or manual setup.
     }
 }
 // Run seeding slightly after startup to ensure DB connection
