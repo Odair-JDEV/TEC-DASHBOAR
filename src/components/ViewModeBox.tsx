@@ -231,27 +231,35 @@ export const ViewModeBox = ({ box, scheduleId }: ViewModeBoxProps) => {
                   </span>
                   <ServiceBadge type={service.type} />
                 </div>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="outline" size="sm" className="h-7 px-2">
-                      Marcar
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => handleStatusChange(service.id, 'concluido')}>
-                      <Check className="w-4 h-4 mr-2 text-green-400" />
-                      Concluído
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => handleStatusChange(service.id, 'cancelado')}>
-                      <X className="w-4 h-4 mr-2 text-destructive" />
-                      Cancelado
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => handleStatusChange(service.id, 'reagendado')}>
-                      <Clock className="w-4 h-4 mr-2 text-yellow-400" />
-                      Reagendado
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                <div className="flex items-center gap-1">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => handleStatusChange(service.id, 'concluido')}
+                    className={`h-7 w-7 hover:bg-green-500/10 hover:text-green-500 ${service.status === 'concluido' ? 'text-green-500 bg-green-500/10' : 'text-muted-foreground'}`}
+                    title="Concluído"
+                  >
+                    <Check className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => handleStatusChange(service.id, 'cancelado')}
+                    className={`h-7 w-7 hover:bg-red-500/10 hover:text-red-500 ${service.status === 'cancelado' ? 'text-red-500 bg-red-500/10' : 'text-muted-foreground'}`}
+                    title="Cancelado"
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => handleStatusChange(service.id, 'reagendado')}
+                    className={`h-7 w-7 hover:bg-orange-500/10 hover:text-orange-500 ${service.status === 'reagendado' ? 'text-orange-500 bg-orange-500/10' : 'text-muted-foreground'}`}
+                    title="Reagendado"
+                  >
+                    <Clock className="w-4 h-4" />
+                  </Button>
+                </div>
               </div>
               <div className="flex items-center gap-2">
                 <ServiceStatusBadge status={service.status} completedAt={service.completedAt} />
