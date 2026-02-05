@@ -81,13 +81,19 @@ export const useAppStore = create<AppState>()(
         const res = await fetch('/api/state');
         const data = await res.json();
 
-        const newSchedules = data.schedules.map((s: any) => ({
+        if (data.error) {
+          console.error('API Error:', data.error);
+          set({ dbStatus: 'disconnected' });
+          return;
+        }
+
+        const newSchedules = (data.schedules || []).map((s: any) => ({
           ...s,
-          boxes: s.boxes.map((b: any) => ({
+          boxes: (s.boxes || []).map((b: any) => ({
             ...b,
             services: b.services || []
           }))
-        })) || [];
+        }));
 
         set((state) => {
           // If we have a current schedule, try to find its updated version
@@ -100,11 +106,13 @@ export const useAppStore = create<AppState>()(
             technicians: data.technicians || [],
             serviceTypes: data.serviceTypes || state.serviceTypes,
             schedules: newSchedules,
-            currentSchedule: updatedCurrentSchedule
+            currentSchedule: updatedCurrentSchedule,
+            dbStatus: 'connected'
           };
         });
       } catch (err) {
         console.error('Failed to fetch state', err);
+        set({ dbStatus: 'disconnected' });
       }
     },
 

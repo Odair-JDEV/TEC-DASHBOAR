@@ -12,10 +12,16 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "server": "tsx server/index.ts",
-    "dev:full": "concurrently \"npm run server\" \"npm run dev\""
+    "dev:full": "concurrently \"npm run server\" \"npm run dev\"",
+    "db:push": "drizzle-kit push"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
+    // ... (keep dependencies as is)
+  },
+  "devDependencies": {
+    "drizzle-kit": "^0.30.0",
+    "@eslint/js": "^9.32.0",
     "@radix-ui/react-accordion": "^1.2.11",
     "@radix-ui/react-alert-dialog": "^1.1.14",
     "@radix-ui/react-aspect-ratio": "^1.1.7",
@@ -72,6 +78,7 @@
     "zustand": "^5.0.10"
   },
   "devDependencies": {
+    "drizzle-kit": "^0.30.0",
     "@eslint/js": "^9.32.0",
     "@tailwindcss/typography": "^0.5.16",
     "@testing-library/jest-dom": "^6.6.0",
