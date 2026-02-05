@@ -31,6 +31,7 @@ interface AppState {
   setCurrentSchedule: (schedule: Schedule | null) => void;
   deleteSchedule: (id: string) => void;
   updateScheduleNotes: (id: string, notes: string) => void;
+  updateScheduleDate: (id: string, date: string) => void;
 
   // Boxes
   addBox: (scheduleId: string) => void;
@@ -202,6 +203,22 @@ export const useAppStore = create<AppState>()(
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ notes })
+      });
+    },
+
+    updateScheduleDate: async (id, date) => {
+      set((state) => {
+        const schedules = state.schedules.map((s) => (s.id === id ? { ...s, date } : s));
+        // Sort by date desc (newest first)
+        schedules.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+        const currentSchedule = schedules.find((s) => s.id === id) || state.currentSchedule;
+        return { schedules, currentSchedule };
+      });
+      fetch(`/api/schedules/${id}/date`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ date })
       });
     },
 

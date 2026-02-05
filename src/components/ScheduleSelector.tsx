@@ -12,6 +12,7 @@ import {
   DialogTrigger,
   DialogFooter,
 } from '@/components/ui/dialog';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Textarea } from '@/components/ui/textarea';
 import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -21,7 +22,7 @@ export const ScheduleSelector = () => {
   const [date, setDate] = useState(format(new Date(), 'yyyy-MM-dd'));
   const [shift, setShift] = useState<Shift>('MANHÃ');
 
-  const { schedules, currentSchedule, createSchedule, setCurrentSchedule, deleteSchedule, updateScheduleNotes, mode } = useAppStore();
+  const { schedules, currentSchedule, createSchedule, setCurrentSchedule, deleteSchedule, updateScheduleNotes, updateScheduleDate, mode } = useAppStore();
 
   const [editingScheduleId, setEditingScheduleId] = useState<string | null>(null);
   const [notes, setNotes] = useState('');
@@ -164,9 +165,28 @@ export const ScheduleSelector = () => {
                 <Moon className="w-4 h-4 text-primary" />
               )}
               <div>
-                <p className="font-mono text-sm font-medium">
-                  {format(parseISO(schedule.date), 'dd/MM/yyyy', { locale: ptBR })}
-                </p>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <p className="font-mono text-sm font-medium hover:text-primary hover:underline cursor-pointer" onClick={(e) => e.stopPropagation()}>
+                      {format(parseISO(schedule.date), 'dd/MM/yyyy', { locale: ptBR })}
+                    </p>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-3" onClick={(e) => e.stopPropagation()}>
+                    <div className="space-y-2">
+                      <h4 className="font-medium text-xs text-muted-foreground uppercase">Alterar Data</h4>
+                      <Input
+                        type="date"
+                        defaultValue={schedule.date}
+                        className="h-8 text-sm"
+                        onChange={(e) => {
+                          if (e.target.value) {
+                            updateScheduleDate(schedule.id, e.target.value);
+                          }
+                        }}
+                      />
+                    </div>
+                  </PopoverContent>
+                </Popover>
                 <p className="text-xs text-muted-foreground">{schedule.shift}</p>
                 {filterOS && (
                   <p className="text-[10px] font-bold text-primary mt-1">
