@@ -25,6 +25,7 @@ export const boxes = pgTable('boxes', {
     status: text('status'),
     departureTime: text('departure_time'),
     returnTime: text('return_time'),
+    alert: text('alert'),
 });
 
 // Services
