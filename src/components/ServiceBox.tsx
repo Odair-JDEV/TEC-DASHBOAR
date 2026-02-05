@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { TeamSelector } from './TeamSelector';
 import { ServiceBadge } from './ServiceBadge';
-import { Box, Plus, X, Tag, GripVertical, Pencil } from 'lucide-react';
+import { Box, Plus, X, GripVertical, Pencil, CheckCircle2, Ban, Clock } from 'lucide-react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -143,26 +143,35 @@ export const ServiceBoxCard = ({ box, scheduleId }: ServiceBoxProps) => {
         </div>
         <div className="flex items-center gap-1">
 
-          {!showStatusInput ? (
+          <div className="flex items-center gap-1">
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => setShowStatusInput(true)}
-              className="h-8 w-8 text-muted-foreground hover:text-accent"
-              title="Adicionar status"
+              onClick={() => updateBoxStatus(scheduleId, box.id, box.status === 'CONCLUÍDO' ? '' : 'CONCLUÍDO')}
+              className={`h-8 w-8 hover:bg-green-500/10 hover:text-green-500 ${box.status === 'CONCLUÍDO' ? 'text-green-500 bg-green-500/10' : 'text-muted-foreground'}`}
+              title="Concluído"
             >
-              <Tag className="w-4 h-4" />
+              <CheckCircle2 className="w-4 h-4" />
             </Button>
-          ) : (
-            <Input
-              value={status}
-              onChange={(e) => setStatus(e.target.value)}
-              onBlur={handleStatusBlur}
-              placeholder="Status..."
-              className="w-24 h-8 text-xs bg-secondary/50 border-border/50"
-              autoFocus
-            />
-          )}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => updateBoxStatus(scheduleId, box.id, box.status === 'CANCELADO' ? '' : 'CANCELADO')}
+              className={`h-8 w-8 hover:bg-red-500/10 hover:text-red-500 ${box.status === 'CANCELADO' ? 'text-red-500 bg-red-500/10' : 'text-muted-foreground'}`}
+              title="Cancelado"
+            >
+              <Ban className="w-4 h-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => updateBoxStatus(scheduleId, box.id, box.status === 'REAGENDADO' ? '' : 'REAGENDADO')}
+              className={`h-8 w-8 hover:bg-orange-500/10 hover:text-orange-500 ${box.status === 'REAGENDADO' ? 'text-orange-500 bg-orange-500/10' : 'text-muted-foreground'}`}
+              title="Reagendado"
+            >
+              <Clock className="w-4 h-4" />
+            </Button>
+          </div>
           <AlertDialog>
             <AlertDialogTrigger asChild>
               <Button
