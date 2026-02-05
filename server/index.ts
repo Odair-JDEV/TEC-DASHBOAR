@@ -2,7 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import { drizzle } from 'drizzle-orm/node-postgres';
 import pg from 'pg';
-import * as schema from './db/schema';
+import * as schema from './db/schema.js';
 import { eq, desc, asc, sql } from 'drizzle-orm';
 import 'dotenv/config';
 

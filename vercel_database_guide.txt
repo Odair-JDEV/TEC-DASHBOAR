@@ -1,0 +1,25 @@
+GUIA RÁPIDO: CONECTAR BANCO DE DADOS NA VERCEL
+
+1. Acesse https://vercel.com e faça login.
+2. Clique em "Add New..." -> "Project".
+3. Importe o repositório "tec-dashboard" do seu GitHub.
+
+NA TELA DE CONFIGURAÇÃO (Configure Project):
+
+4. Framework Preset: Selecione "Vite" (se não for automático).
+5. Root Directory: Deixe "./"
+
+6. ENVIRONMENT VARIABLES (IMPORTANTE!):
+   Você PRECISA adicionar a conexão do banco aqui.
+   
+   - Name: DATABASE_URL
+   - Value: postgresql://neondb_owner:npg_QC0K1aeSbGht@ep-old-glitter-ai5wnsjg-pooler.c-4.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require
+   
+   (Clique em "Add" para salvar a variável)
+
+7. Clique em "Deploy".
+
+VERIFICAÇÃO:
+- Após finalizar, abra o link do site (ex: tec-dashboard.vercel.app).
+- O ícone de banco de dados no topo deve estar VERDE ("Neon DB").
+- Se estiver vermelho, a variável DATABASE_URL não foi configurada corretamente. Volte em Settings -> Environment Variables na Vercel e corrija.

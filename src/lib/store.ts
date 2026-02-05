@@ -51,7 +51,6 @@ export const useAppStore = create<AppState>()(
     technicians: [],
     schedules: [],
     currentSchedule: null,
-    currentSchedule: null,
     mode: 'view',
     dbStatus: 'checking',
 
