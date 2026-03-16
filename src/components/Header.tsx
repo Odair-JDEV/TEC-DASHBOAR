@@ -37,7 +37,7 @@ export const Header = () => {
             </div>
             <Database className={`w-4 h-4 ${dbStatus === 'connected' ? 'text-green-500' : 'text-red-500'}`} />
             <span className={`text-xs font-medium ${dbStatus === 'connected' ? 'text-green-500' : 'text-red-500'}`}>
-              {dbStatus === 'checking' ? 'Verificando...' : dbStatus === 'connected' ? 'Neon DB' : 'Offline'}
+              {dbStatus === 'checking' ? 'Verificando...' : dbStatus === 'connected' ? 'Supabase' : 'Offline'}
             </span>
           </div>
           <ModeToggle />
