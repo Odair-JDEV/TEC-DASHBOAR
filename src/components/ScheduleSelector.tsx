@@ -12,8 +12,19 @@ import {
   DialogTrigger,
   DialogFooter,
 } from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogCancel,
+  AlertDialogAction,
+} from '@/components/ui/alert-dialog';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Textarea } from '@/components/ui/textarea';
+import { AlertTriangle } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Shift } from '@/types';
@@ -28,6 +39,32 @@ export const ScheduleSelector = () => {
   const [notes, setNotes] = useState('');
   const [filterDate, setFilterDate] = useState('');
   const [filterOS, setFilterOS] = useState('');
+
+  // Exclusão de agenda com verificação matemática
+  const [deletingSchedule, setDeletingSchedule] = useState<{ id: string; date: string; shift: Shift } | null>(null);
+  const [mathChallenge, setMathChallenge] = useState({ a: 0, b: 0 });
+  const [mathAnswer, setMathAnswer] = useState('');
+  const [mathError, setMathError] = useState(false);
+
+  const openDeleteDialog = (schedule: { id: string; date: string; shift: Shift }) => {
+    setMathChallenge({
+      a: Math.floor(Math.random() * 10) + 1,
+      b: Math.floor(Math.random() * 10) + 1,
+    });
+    setMathAnswer('');
+    setMathError(false);
+    setDeletingSchedule(schedule);
+  };
+
+  const confirmDelete = () => {
+    if (!deletingSchedule) return;
+    if (parseInt(mathAnswer, 10) === mathChallenge.a + mathChallenge.b) {
+      deleteSchedule(deletingSchedule.id);
+      setDeletingSchedule(null);
+    } else {
+      setMathError(true);
+    }
+  };
 
   const filteredSchedules = schedules.filter(s => {
     const matchesDate = !filterDate || s.date === filterDate;
@@ -272,7 +309,7 @@ export const ScheduleSelector = () => {
                   size="icon"
                   onClick={(e) => {
                     e.stopPropagation();
-                    deleteSchedule(schedule.id);
+                    openDeleteDialog({ id: schedule.id, date: schedule.date, shift: schedule.shift });
                   }}
                   className="h-8 w-8 text-muted-foreground hover:text-destructive"
                 >
@@ -283,6 +320,72 @@ export const ScheduleSelector = () => {
           </div>
         ))}
       </div>
+
+      <AlertDialog
+        open={deletingSchedule !== null}
+        onOpenChange={(open) => {
+          if (!open) setDeletingSchedule(null);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2 text-destructive">
+              <AlertTriangle className="w-5 h-5" />
+              Excluir Agenda
+            </AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-3">
+                <p className="font-semibold text-foreground">
+                  Atenção: você está prestes a EXCLUIR permanentemente a agenda
+                  {deletingSchedule
+                    ? ` do dia ${format(parseISO(deletingSchedule.date), 'dd/MM/yyyy', { locale: ptBR })} (${deletingSchedule.shift})`
+                    : ''}
+                  . Esta ação não pode ser desfeita.
+                </p>
+                <p>
+                  Para confirmar a exclusão, resolva a soma abaixo e digite o
+                  resultado correto:
+                </p>
+                <div className="text-center text-2xl font-bold font-mono text-foreground py-2">
+                  {mathChallenge.a} + {mathChallenge.b} = ?
+                </div>
+                <Input
+                  type="number"
+                  inputMode="numeric"
+                  autoFocus
+                  value={mathAnswer}
+                  onChange={(e) => {
+                    setMathAnswer(e.target.value);
+                    setMathError(false);
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') confirmDelete();
+                  }}
+                  placeholder="Digite o resultado"
+                  className="text-center text-lg"
+                />
+                {mathError && (
+                  <p className="text-sm font-semibold text-destructive text-center">
+                    Resposta incorreta. A agenda NÃO foi excluída. Tente novamente.
+                  </p>
+                )}
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => {
+                e.preventDefault();
+                confirmDelete();
+              }}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Confirmar Exclusão
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div >
   );
 };
