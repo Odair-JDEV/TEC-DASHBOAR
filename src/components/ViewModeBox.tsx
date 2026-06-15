@@ -15,6 +15,16 @@ import {
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 interface ViewModeBoxProps {
   box: ServiceBoxType;
@@ -48,7 +58,14 @@ export const ViewModeBox = ({ box, scheduleId }: ViewModeBoxProps) => {
   const [editingReturn, setEditingReturn] = useState(false);
   const [returnTime, setReturnTime] = useState(box.returnTime || '');
   const [isDragOver, setIsDragOver] = useState(false);
+  const [unmarkTarget, setUnmarkTarget] = useState<{ serviceId: string; status: ServiceStatus } | null>(null);
   const teamName = formatTeamName(box);
+
+  const statusLabels: Record<string, string> = {
+    concluido: 'concluído',
+    cancelado: 'cancelado',
+    reagendado: 'reagendado',
+  };
 
   const handleDragStart = (e: React.DragEvent, serviceId: string) => {
     e.dataTransfer.effectAllowed = 'move';
@@ -81,8 +98,22 @@ export const ViewModeBox = ({ box, scheduleId }: ViewModeBoxProps) => {
   };
 
   const handleStatusChange = (serviceId: string, status: ServiceStatus) => {
+    const service = box.services.find((s) => s.id === serviceId);
+
+    // Se clicar no mesmo status já marcado, pede confirmação para desmarcar
+    if (service && service.status === status) {
+      setUnmarkTarget({ serviceId, status });
+      return;
+    }
+
     const now = format(new Date(), 'HH:mm');
     updateServiceStatus(scheduleId, box.id, serviceId, status, now);
+  };
+
+  const handleConfirmUnmark = () => {
+    if (!unmarkTarget) return;
+    updateServiceStatus(scheduleId, box.id, unmarkTarget.serviceId, 'pendente', '');
+    setUnmarkTarget(null);
   };
 
   const handleEditTime = (serviceId: string, currentTime: string) => {
@@ -339,6 +370,22 @@ export const ViewModeBox = ({ box, scheduleId }: ViewModeBoxProps) => {
           ))
         )}
       </div>
+
+      <AlertDialog open={unmarkTarget !== null} onOpenChange={(open) => !open && setUnmarkTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Desmarcar serviço</AlertDialogTitle>
+            <AlertDialogDescription>
+              Deseja desmarcar que foi {unmarkTarget ? statusLabels[unmarkTarget.status] : ''}? A
+              hora registrada será removida e o serviço voltará para pendente.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmUnmark}>Desmarcar</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
