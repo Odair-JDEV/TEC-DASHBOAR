@@ -1,11 +1,12 @@
 import { useAppStore } from '@/lib/store';
 import { ViewModeBox } from './ViewModeBox';
-import { FileText, Copy, Check, Sun, Moon } from 'lucide-react';
+import { FileText, Copy, Check, Sun, Moon, Search, X } from 'lucide-react';
 
 import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
 
@@ -35,6 +36,16 @@ const formatStatusText = (status?: string, completedAt?: string): string => {
 export const ScheduleViewer = () => {
   const { currentSchedule, schedules, setCurrentSchedule } = useAppStore();
   const [copied, setCopied] = useState(false);
+  const [searchOS, setSearchOS] = useState('');
+
+  const trimmedSearch = searchOS.trim();
+  const matchCount = trimmedSearch && currentSchedule
+    ? currentSchedule.boxes.reduce(
+        (acc, box) =>
+          acc + box.services.filter((s) => s.osNumber.includes(trimmedSearch)).length,
+        0
+      )
+    : 0;
 
   const handleToggleShift = () => {
     if (!currentSchedule) return;
@@ -175,15 +186,44 @@ export const ScheduleViewer = () => {
             </span>
           </div>
         </div>
-        <Button onClick={handleCopyWithStatus} className="glow-primary">
-          {copied ? (
-            <Check className="w-4 h-4 mr-2" />
-          ) : (
-            <Copy className="w-4 h-4 mr-2" />
-          )}
-          {copied ? 'Copiado!' : 'Copiar com Status'}
-        </Button>
+        <div className="flex items-center gap-3">
+          <div className="relative w-56">
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+            <Input
+              type="text"
+              inputMode="numeric"
+              value={searchOS}
+              onChange={(e) => setSearchOS(e.target.value)}
+              placeholder="Buscar OS..."
+              className="pl-8 pr-8 h-9 bg-secondary/40 border-border/50"
+            />
+            {searchOS && (
+              <button
+                onClick={() => setSearchOS('')}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                title="Limpar busca"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
+          </div>
+          <Button onClick={handleCopyWithStatus} className="glow-primary">
+            {copied ? (
+              <Check className="w-4 h-4 mr-2" />
+            ) : (
+              <Copy className="w-4 h-4 mr-2" />
+            )}
+            {copied ? 'Copiado!' : 'Copiar com Status'}
+          </Button>
+        </div>
       </div>
+      {trimmedSearch && (
+        <div className="px-4 py-1.5 text-xs text-muted-foreground bg-secondary/20 border-b border-border/50">
+          {matchCount > 0
+            ? `${matchCount} OS encontrada(s) para "${trimmedSearch}" - destacada(s) em azul.`
+            : `Nenhuma OS encontrada para "${trimmedSearch}".`}
+        </div>
+      )}
 
       <div className="flex-1 overflow-y-auto p-4">
         <div
@@ -196,6 +236,7 @@ export const ScheduleViewer = () => {
               key={box.id}
               box={box}
               scheduleId={currentSchedule.id}
+              highlightOS={trimmedSearch}
             />
           ))}
         </div>

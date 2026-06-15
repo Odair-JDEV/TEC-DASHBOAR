@@ -29,6 +29,7 @@ import {
 interface ViewModeBoxProps {
   box: ServiceBoxType;
   scheduleId: string;
+  highlightOS?: string;
 }
 
 const formatTeamName = (box: ServiceBoxType): string => {
@@ -49,7 +50,7 @@ const formatTeamName = (box: ServiceBoxType): string => {
   return names.join(', ');
 };
 
-export const ViewModeBox = ({ box, scheduleId }: ViewModeBoxProps) => {
+export const ViewModeBox = ({ box, scheduleId, highlightOS }: ViewModeBoxProps) => {
   const { updateServiceStatus, updateBoxDepartureTime, moveService, updateBoxReturnTime } = useAppStore();
   const [editingTimeId, setEditingTimeId] = useState<string | null>(null);
   const [editedTime, setEditedTime] = useState('');
@@ -279,12 +280,19 @@ export const ViewModeBox = ({ box, scheduleId }: ViewModeBoxProps) => {
             VAZIA
           </p>
         ) : (
-          box.services.map((service) => (
+          box.services.map((service) => {
+            const isHighlighted = !!highlightOS && service.osNumber.includes(highlightOS);
+            return (
             <div
               key={service.id}
               draggable
               onDragStart={(e) => handleDragStart(e, service.id)}
-              className="p-3 bg-secondary/30 rounded-lg space-y-2 cursor-move group hover:bg-secondary/50 transition-colors"
+              className={cn(
+                'p-3 rounded-lg space-y-2 cursor-move group transition-colors border',
+                isHighlighted
+                  ? 'animate-blink-blue border-blue-500'
+                  : 'bg-secondary/30 border-transparent hover:bg-secondary/50'
+              )}
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
@@ -367,7 +375,8 @@ export const ViewModeBox = ({ box, scheduleId }: ViewModeBoxProps) => {
                 )}
               </div>
             </div>
-          ))
+            );
+          })
         )}
       </div>
 
