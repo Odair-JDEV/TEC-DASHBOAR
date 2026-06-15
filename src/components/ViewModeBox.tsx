@@ -15,10 +15,21 @@ import {
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 interface ViewModeBoxProps {
   box: ServiceBoxType;
   scheduleId: string;
+  highlightOS?: string;
 }
 
 const formatTeamName = (box: ServiceBoxType): string => {
@@ -39,7 +50,7 @@ const formatTeamName = (box: ServiceBoxType): string => {
   return names.join(', ');
 };
 
-export const ViewModeBox = ({ box, scheduleId }: ViewModeBoxProps) => {
+export const ViewModeBox = ({ box, scheduleId, highlightOS }: ViewModeBoxProps) => {
   const { updateServiceStatus, updateBoxDepartureTime, moveService, updateBoxReturnTime } = useAppStore();
   const [editingTimeId, setEditingTimeId] = useState<string | null>(null);
   const [editedTime, setEditedTime] = useState('');
@@ -48,7 +59,14 @@ export const ViewModeBox = ({ box, scheduleId }: ViewModeBoxProps) => {
   const [editingReturn, setEditingReturn] = useState(false);
   const [returnTime, setReturnTime] = useState(box.returnTime || '');
   const [isDragOver, setIsDragOver] = useState(false);
+  const [unmarkTarget, setUnmarkTarget] = useState<{ serviceId: string; status: ServiceStatus } | null>(null);
   const teamName = formatTeamName(box);
+
+  const statusLabels: Record<string, string> = {
+    concluido: 'concluído',
+    cancelado: 'cancelado',
+    reagendado: 'reagendado',
+  };
 
   const handleDragStart = (e: React.DragEvent, serviceId: string) => {
     e.dataTransfer.effectAllowed = 'move';
@@ -81,8 +99,22 @@ export const ViewModeBox = ({ box, scheduleId }: ViewModeBoxProps) => {
   };
 
   const handleStatusChange = (serviceId: string, status: ServiceStatus) => {
+    const service = box.services.find((s) => s.id === serviceId);
+
+    // Se clicar no mesmo status já marcado, pede confirmação para desmarcar
+    if (service && service.status === status) {
+      setUnmarkTarget({ serviceId, status });
+      return;
+    }
+
     const now = format(new Date(), 'HH:mm');
     updateServiceStatus(scheduleId, box.id, serviceId, status, now);
+  };
+
+  const handleConfirmUnmark = () => {
+    if (!unmarkTarget) return;
+    updateServiceStatus(scheduleId, box.id, unmarkTarget.serviceId, 'pendente', '');
+    setUnmarkTarget(null);
   };
 
   const handleEditTime = (serviceId: string, currentTime: string) => {
@@ -248,12 +280,19 @@ export const ViewModeBox = ({ box, scheduleId }: ViewModeBoxProps) => {
             VAZIA
           </p>
         ) : (
-          box.services.map((service) => (
+          box.services.map((service) => {
+            const isHighlighted = !!highlightOS && service.osNumber.includes(highlightOS);
+            return (
             <div
               key={service.id}
               draggable
               onDragStart={(e) => handleDragStart(e, service.id)}
-              className="p-3 bg-secondary/30 rounded-lg space-y-2 cursor-move group hover:bg-secondary/50 transition-colors"
+              className={cn(
+                'p-3 rounded-lg space-y-2 cursor-move group transition-colors border',
+                isHighlighted
+                  ? 'animate-blink-blue border-blue-500'
+                  : 'bg-secondary/30 border-transparent hover:bg-secondary/50'
+              )}
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
@@ -336,9 +375,26 @@ export const ViewModeBox = ({ box, scheduleId }: ViewModeBoxProps) => {
                 )}
               </div>
             </div>
-          ))
+            );
+          })
         )}
       </div>
+
+      <AlertDialog open={unmarkTarget !== null} onOpenChange={(open) => !open && setUnmarkTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Desmarcar serviço</AlertDialogTitle>
+            <AlertDialogDescription>
+              Deseja desmarcar que foi {unmarkTarget ? statusLabels[unmarkTarget.status] : ''}? A
+              hora registrada será removida e o serviço voltará para pendente.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmUnmark}>Desmarcar</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
